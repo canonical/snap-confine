@@ -70,6 +70,9 @@
     # reading seccomp filters
     /var/lib/snapd/seccomp/profiles/* r,
 
+    # reading the environment
+    /var/lib/snapd/environment/* r,
+
     # set up snap-specific private /tmp dir
     capability chown,
     /tmp/ w,

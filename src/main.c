@@ -43,6 +43,7 @@
 
 #include "utils.h"
 #include "seccomp.h"
+#include "environment.h"
 
 #define MAX_BUF 1000
 
@@ -569,6 +570,9 @@ int main(int argc, char **argv)
 		if (real_uid != 0 && (getgid() == 0 || getegid() == 0))
 			die("permanently dropping privs did not work");
 	}
+	// apply environment file as *non* root
+	apply_environment_file(aa_profile);
+
 	// and exec the new binary
 	execv(binary, (char *const *)&argv[NR_ARGS]);
 	perror("execv failed");
