@@ -1,15 +1,17 @@
 #!/bin/sh
-
-L=$(pwd)/../src/ubuntu-core-launcher
+    
+L="$(pwd)/../src/snap-run"
+export L
 
 TMP="$(mktemp -d)"
-trap "rm -rf $TMP" EXIT
+trap 'rm -rf $TMP' EXIT
 
 export SNAPPY_LAUNCHER_SECCOMP_PROFILE_DIR="$TMP"
 export SNAPPY_LAUNCHER_ENVIRONMENT_DIR="$TMP/environment"
 mkdir "$SNAPPY_LAUNCHER_ENVIRONMENT_DIR"
 
 export SNAPPY_LAUNCHER_INSIDE_TESTS="1"
+export UBUNTU_CORE_LAUNCHER_NO_ROOT=1
 
 
 FAIL() {
