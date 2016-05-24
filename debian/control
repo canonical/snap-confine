@@ -15,7 +15,8 @@ Description: Launcher for snappy apps
  This package contains the launcher for applications packaged as snaps
 
 Package: ubuntu-core-launcher
-Architecture: all
+# dpkg-mainthelper fails to remove the conffile if we switch from any to all
+Architecture: any
 Depends: ${misc:Depends}, ${shlibs:Depends}, snap-run
 Pre-Depends: dpkg (>= 1.17.14)
 Description: Launcher for ubuntu-core (snappy) apps
