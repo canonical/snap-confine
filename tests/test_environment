@@ -1,0 +1,28 @@
+#!/bin/sh
+
+set -e
+
+. $(pwd)/common.sh
+
+test() {
+    needle="$1"
+    cat >$TMP/environment/myprofile <<EOF
+$needle
+EOF
+    if ! $L snap.name.app myprofile /usr/bin/env |grep -q "$needle"; then
+        FAIL
+    fi
+    
+    PASS
+}
+
+cat >$TMP//myprofile <<EOF
+@unrestricted
+EOF
+
+
+printf "Set environment from launcher"
+test "LD_LIBRARY_PATH=/some/path"
+
+printf "With '=' in environment"
+test "FOO=bar=baz"
