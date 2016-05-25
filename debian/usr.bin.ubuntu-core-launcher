@@ -19,6 +19,9 @@
 
     /usr/bin/ubuntu-core-launcher r,
 
+    # for snap run
+    /usr/bin/snap r,
+
     /dev/null rw,
     /dev/full rw,
     /dev/zero rw,
