@@ -18,7 +18,7 @@
     /lib/@{multiarch}/libseccomp.so* mr,
 
     /usr/bin/snap-run r,
-    /usr/lib/snapd/snap-launch mr,
+    /usr/lib/snapd/snap-exec ixr,
 
     /dev/null rw,
     /dev/full rw,
