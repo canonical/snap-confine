@@ -18,10 +18,7 @@
     /lib/@{multiarch}/libseccomp.so* mr,
 
     /usr/bin/ubuntu-core-launcher r,
-
-    # for snap run
-    /usr/bin/snap mr,
-    /lib/@{multiarch}/linux-vdso.so* mr,
+    /usr/lib/snapd/snap-launch mr,
 
     /dev/null rw,
     /dev/full rw,
