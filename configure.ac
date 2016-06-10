@@ -80,5 +80,33 @@ AS_IF([test "x$enable_rootfs_is_core_snap" = "xyes"], [
     AC_DEFINE([ROOTFS_IS_CORE_SNAP], [1],
         [Use the core snap as the root file system])])
 
+# Enable special support for hosts with proprietary nvidia drivers on Ubuntu.
+AC_ARG_ENABLE([nvidia-ubuntu],
+    AS_HELP_STRING([--enable-nvidia-ubuntu], [Support for proprietary nvidia drivers (Ubuntu)]),
+    [case "${enableval}" in
+        yes) enable_nvidia_ubuntu=yes ;;
+        no)  enable_nvidia_ubuntu=no ;;
+        *) AC_MSG_ERROR([bad value ${enableval} for --enable-nvidia-ubuntu])
+    esac], [enable_nvidia_ubuntu=no])
+AM_CONDITIONAL([NVIDIA_UBUNTU], [test "x$enable_nvidia_ubuntu" = "xyes"])
+
+AS_IF([test "x$enable_nvidia_ubuntu" = "xyes"], [
+    AC_DEFINE([NVIDIA_UBUNTU], [1],
+        [Support for propietary nvidia drivers (Ubuntu)])])
+
+# Enable special support for hosts with proprietary nvidia drivers on Arch.
+AC_ARG_ENABLE([nvidia-arch],
+    AS_HELP_STRING([--enable-nvidia-arch], [Support for proprietary nvidia drivers (Arch)]),
+    [case "${enableval}" in
+        yes) enable_nvidia_arch=yes ;;
+        no)  enable_nvidia_arch=no ;;
+        *) AC_MSG_ERROR([bad value ${enableval} for --enable-nvidia-arch])
+    esac], [enable_nvidia_arch=no])
+AM_CONDITIONAL([NVIDIA_ARCH], [test "x$enable_nvidia_arch" = "xyes"])
+
+AS_IF([test "x$enable_nvidia_arch" = "xyes"], [
+    AC_DEFINE([NVIDIA_ARCH], [1],
+        [Support for propietary nvidia drivers (Arch)])])
+
 AC_CONFIG_FILES([Makefile src/Makefile tests/Makefile compat/Makefile])
 AC_OUTPUT
