@@ -18,20 +18,9 @@ Build-Depends: autoconf,
 Standards-Version: 3.9.8
 Vcs-Git: https://github.com/vorlonofportland/snap-confine -b debian
 
-Package: snap-confine
-Architecture: any
-Breaks: ubuntu-core-launcher (<< 1.0.29)
-Replaces: ubuntu-core-launcher (<< 1.0.29)
-Depends: apparmor, ${misc:Depends}, ${shlibs:Depends}
-Description: Support executable to apply confinement for snappy apps.
- This package contains an internal tool for applying confinement to snappy app.
- The executable (snap-confine) is ran internally by snapd to apply confinement
- to the started application process. The tool is written in C and carefully
- reviewed to limit the attack surface on the security model of snapd.
-
 Package: ubuntu-core-launcher
-Architecture: all
-Depends: snap-confine, ${misc:Depends}, ${shlibs:Depends}
+Architecture: any
+Depends: ${misc:Depends}, ${shlibs:Depends}
 Pre-Depends: dpkg (>= 1.17.14)
 Description: Launcher for ubuntu-core (snappy) apps
  This package contains the launcher for launching snappy applications

@@ -1,1 +1,1 @@
-usr/bin/ubuntu-core-launcher
+debian/usr.bin.snap-confine etc/apparmor.d
