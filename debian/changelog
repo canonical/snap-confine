@@ -1,3 +1,10 @@
+ubuntu-core-launcher (1.0.29) yakkety; urgency=medium
+
+  * debian/usr.bin.ubuntu-core-launcher: add workaround rules for ecryptfs
+    until the upcoming kernel fix lands everywhere (LP: #1574556)
+
+ -- Jamie Strandboge <jamie@ubuntu.com>  Tue, 10 May 2016 12:10:35 -0500
+
 ubuntu-core-launcher (1.0.28) yakkety; urgency=medium
 
   * SECURITY UPDATE: delayed attack snap data theft and privilege escalation
