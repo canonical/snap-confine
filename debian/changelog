@@ -1,3 +1,16 @@
+ubuntu-core-launcher (1.0.29+1) unstable; urgency=medium
+
+  * Initial Debian upload.
+  * Update Standards-Version.
+  * Adjust package description; this is not just for running apps on Ubuntu
+    systems.
+  * Add several lintian overrides.
+  * Include dpkg-buildflags CPPFLAGS, not just CFLAGS, to get libc fortify
+    support.
+  * Update Vcs-Bzr for this source's branch.
+
+ -- Steve Langasek <vorlon@debian.org>  Sun, 22 May 2016 06:15:24 +0000
+
 ubuntu-core-launcher (1.0.29) yakkety; urgency=medium
 
   * debian/usr.bin.ubuntu-core-launcher: add workaround rules for ecryptfs
