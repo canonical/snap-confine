@@ -16,9 +16,9 @@
  */
 #include <stdbool.h>
 
-#ifndef CORE_LAUNCHER_SECCOMP_H
-#define CORE_LAUNCHER_SECCOMP_H
+#ifndef SNAP_CONFINE_SECCOMP_SUPPORT_H
+#define SNAP_CONFINE_SECCOMP_SUPPORT_H
 
-int seccomp_load_filters(const char *filter_profile);
+void seccomp_load_filters(const char *filter_profile);
 
 #endif
