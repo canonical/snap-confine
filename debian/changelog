@@ -1,6 +1,8 @@
 ubuntu-core-launcher (1.0.29+3) UNRELEASED; urgency=medium
 
   * Reapply packaging rename.
+  * Use dpkg-vendor so that we can use a single debian/rules for both Debian
+    and Ubuntu.
 
  -- Steve Langasek <vorlon@debian.org>  Tue, 21 Jun 2016 10:45:12 -0700
 
