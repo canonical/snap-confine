@@ -6,6 +6,7 @@ all_tests = \
     test_complain \
     test_complain_missed \
     test_noprofile \
+    test_restrictions \
     test_restrictions_working \
     test_unrestricted \
     test_unrestricted_missed \
@@ -14,7 +15,9 @@ all_tests = \
 EXTRA_DIST = $(all_tests) common.sh
 
 if STRICT_CONFINEMENT
+if CONFINEMENT_TESTS
 TESTS += $(all_tests)
+endif
 endif
 
 check: ../src/snap-confine

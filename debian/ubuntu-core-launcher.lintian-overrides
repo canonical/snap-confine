@@ -1,3 +1,0 @@
-# Yes, we expect this to be suid.
-ubuntu-core-launcher: setuid-binary usr/bin/ubuntu-core-launcher 4755 root/root
-
