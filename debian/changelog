@@ -1,4 +1,4 @@
-snap-confine (1.0.33-1) UNRELEASED; urgency=medium
+snap-confine (1.0.33-1) unstable; urgency=medium
 
   * New upstream release
   * Reapply packaging rename.
@@ -16,7 +16,7 @@ snap-confine (1.0.33-1) UNRELEASED; urgency=medium
     correctly
   * Expose /run when --enable-rootfs-is-core-snap is used
 
- -- Steve Langasek <vorlon@debian.org>  Tue, 21 Jun 2016 10:45:12 -0700
+ -- Steve Langasek <vorlon@debian.org>  Wed, 22 Jun 2016 06:29:26 +0000
 
 ubuntu-core-launcher (1.0.30) yakkety; urgency=medium
 
