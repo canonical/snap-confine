@@ -9,6 +9,7 @@ snap-confine (1.0.33-1) UNRELEASED; urgency=medium
   * Complete the rename to snap-confine by renaming the source package.
   * debian/patches/udev-rules-without-confinement: Install udev rules
     even if confinement isn't enabled.
+  * Move Vcs-Git to collab-maint on alioth.
 
   [ Zygmunt Krynicki ]
   * Break/Replace ubuntu-core-launcher << 1.0.32 so that packages upgrade
