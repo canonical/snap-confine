@@ -7,6 +7,8 @@ snap-confine (1.0.33-1) UNRELEASED; urgency=medium
   * Add debian/watch for upstream tarballs.
   * Switch debian/source/format to non-native.
   * Complete the rename to snap-confine by renaming the source package.
+  * debian/patches/udev-rules-without-confinement: Install udev rules
+    even if confinement isn't enabled.
 
   [ Zygmunt Krynicki ]
   * Break/Replace ubuntu-core-launcher << 1.0.32 so that packages upgrade
