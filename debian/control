@@ -1,4 +1,4 @@
-Source: ubuntu-core-launcher
+Source: snap-confine
 Section: utils
 Priority: optional
 Maintainer: Steve Langasek <vorlon@debian.org>
