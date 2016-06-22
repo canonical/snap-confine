@@ -30,6 +30,7 @@
 #include <errno.h>
 #include <sched.h>
 #include <string.h>
+#include <mntent.h>
 
 #include "utils.h"
 #include "snap.h"
@@ -293,4 +294,51 @@ void setup_slave_mount_namespace()
 	if (mount("none", "/", NULL, MS_REC | MS_SLAVE, NULL) != 0) {
 		die("can not make make / rslave");
 	}
+}
+
+void setup_bind_mounts(const char *appname)
+{
+	debug("%s: %s", __FUNCTION__, appname);
+
+	FILE *f = NULL;
+	const char *bind_profile_dir = "/var/lib/snapd/bind/profiles/";
+
+	char profile_path[PATH_MAX];
+	must_snprintf(profile_path, sizeof(profile_path), "%s/%s.bind",
+		      bind_profile_dir, appname);
+
+	f = fopen(profile_path, "r");
+	// it is ok for the file to not exist
+	if (f == NULL && errno == ENOENT)
+		return;
+	// however any other error is a real error
+	if (f == NULL) {
+		die("cannot open %s", profile_path);
+	}
+
+	struct mntent *m = NULL;
+	while ((m = getmntent(f)) != NULL) {
+		int flags = MS_BIND | MS_RDONLY | MS_NODEV | MS_NOSUID;
+
+		if (strcmp(m->mnt_type, "none") != 0) {
+			die("only 'none' filesystemtype is supported");
+		}
+		if (hasmntopt(m, "bind") == NULL) {
+			die("need bind mount flag");
+		}
+		if (hasmntopt(m, "rw") != NULL) {
+			flags &= ~MS_RDONLY;
+		}
+
+		if (mount(m->mnt_fsname, m->mnt_dir, NULL, flags, NULL) != 0) {
+			die("unable to bind private /tmp");
+		}
+	}
+
+	if (f != NULL) {
+		if (fclose(f) != 0)
+			die("could not close bind mount file");
+	}
+
+	return;
 }

@@ -1,0 +1,10 @@
+summary: Check that basic install works
+restore: |
+    snap remove hello-world
+execute: |
+    echo Run some hello-world stuff
+    snap install hello-world
+    hello-world.echo | grep Hello
+    hello-world.env | grep SNAP_NAME=hello-world
+    echo Ensure that we get an error if hello-world.evil does not return an error
+    if hello-world.evil; then exit 1; fi
