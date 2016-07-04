@@ -1,3 +1,12 @@
+snap-confine (1.0.34-1) UNRELEASED; urgency=medium
+
+  * New upstream release.
+  * Update build dependencies.
+  * Remove d/patches/udev-rules-without-confinement, applied upstream.
+  * Update apparmor profile.
+
+ -- Michael Hudson-Doyle <michael.hudson@ubuntu.com>  Mon, 04 Jul 2016 12:18:54 +1200
+
 snap-confine (1.0.33-1) unstable; urgency=medium
 
   * New upstream release
