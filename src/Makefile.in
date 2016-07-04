@@ -89,14 +89,15 @@ POST_UNINSTALL = :
 build_triplet = @build@
 host_triplet = @host@
 libexec_PROGRAMS = snap-confine$(EXEEXT)
-@STRICT_CONFINEMENT_TRUE@am__append_1 = \
-@STRICT_CONFINEMENT_TRUE@	seccomp-support.c \
-@STRICT_CONFINEMENT_TRUE@	seccomp-support.h \
-@STRICT_CONFINEMENT_TRUE@	udev-support.c \
-@STRICT_CONFINEMENT_TRUE@	udev-support.h
+noinst_PROGRAMS = snap-confine-unit-tests$(EXEEXT)
+@SECCOMP_TRUE@am__append_1 = \
+@SECCOMP_TRUE@	seccomp-support.c \
+@SECCOMP_TRUE@	seccomp-support.h
 
-@STRICT_CONFINEMENT_TRUE@am__append_2 = $(APPARMOR_CFLAGS) $(SECCOMP_CFLAGS) $(LIBUDEV_CFLAGS)
-@STRICT_CONFINEMENT_TRUE@am__append_3 = $(APPARMOR_LIBS) $(SECCOMP_LIBS) $(LIBUDEV_LIBS)
+@SECCOMP_TRUE@am__append_2 = $(SECCOMP_CFLAGS)
+@SECCOMP_TRUE@am__append_3 = $(SECCOMP_LIBS)
+@APPARMOR_TRUE@am__append_4 = $(APPARMOR_CFLAGS)
+@APPARMOR_TRUE@am__append_5 = $(APPARMOR_LIBS)
 subdir = src
 ACLOCAL_M4 = $(top_srcdir)/aclocal.m4
 am__aclocal_m4_deps = $(top_srcdir)/configure.ac
@@ -108,27 +109,44 @@ CONFIG_HEADER = $(top_builddir)/config.h
 CONFIG_CLEAN_FILES =
 CONFIG_CLEAN_VPATH_FILES =
 am__installdirs = "$(DESTDIR)$(libexecdir)"
-PROGRAMS = $(libexec_PROGRAMS)
-am__snap_confine_SOURCES_DIST = main.c utils.c utils.h snap.c snap.h \
-	classic.c classic.h mount-support.c mount-support.h \
-	mount-support-nvidia.c mount-support-nvidia.h \
-	seccomp-support.c seccomp-support.h udev-support.c \
-	udev-support.h
-@STRICT_CONFINEMENT_TRUE@am__objects_1 = snap_confine-seccomp-support.$(OBJEXT) \
-@STRICT_CONFINEMENT_TRUE@	snap_confine-udev-support.$(OBJEXT)
+PROGRAMS = $(libexec_PROGRAMS) $(noinst_PROGRAMS)
+am__snap_confine_SOURCES_DIST = main.c sc-main.c sc-main.h utils.c \
+	utils.h snap.c snap.h classic.c classic.h mount-support.c \
+	mount-support.h mount-support-nvidia.c mount-support-nvidia.h \
+	cleanup-funcs.c cleanup-funcs.h udev-support.c udev-support.h \
+	seccomp-support.c seccomp-support.h
+@SECCOMP_TRUE@am__objects_1 = snap_confine-seccomp-support.$(OBJEXT)
 am_snap_confine_OBJECTS = snap_confine-main.$(OBJEXT) \
-	snap_confine-utils.$(OBJEXT) snap_confine-snap.$(OBJEXT) \
-	snap_confine-classic.$(OBJEXT) \
+	snap_confine-sc-main.$(OBJEXT) snap_confine-utils.$(OBJEXT) \
+	snap_confine-snap.$(OBJEXT) snap_confine-classic.$(OBJEXT) \
 	snap_confine-mount-support.$(OBJEXT) \
-	snap_confine-mount-support-nvidia.$(OBJEXT) $(am__objects_1)
+	snap_confine-mount-support-nvidia.$(OBJEXT) \
+	snap_confine-cleanup-funcs.$(OBJEXT) \
+	snap_confine-udev-support.$(OBJEXT) $(am__objects_1)
 snap_confine_OBJECTS = $(am_snap_confine_OBJECTS)
 am__DEPENDENCIES_1 =
-@STRICT_CONFINEMENT_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1) \
-@STRICT_CONFINEMENT_TRUE@	$(am__DEPENDENCIES_1) \
-@STRICT_CONFINEMENT_TRUE@	$(am__DEPENDENCIES_1)
-snap_confine_DEPENDENCIES = $(am__DEPENDENCIES_2)
+@SECCOMP_TRUE@am__DEPENDENCIES_2 = $(am__DEPENDENCIES_1)
+@APPARMOR_TRUE@am__DEPENDENCIES_3 = $(am__DEPENDENCIES_1)
+snap_confine_DEPENDENCIES = $(am__DEPENDENCIES_1) \
+	$(am__DEPENDENCIES_2) $(am__DEPENDENCIES_3)
 snap_confine_LINK = $(CCLD) $(snap_confine_CFLAGS) $(CFLAGS) \
-	$(AM_LDFLAGS) $(LDFLAGS) -o $@
+	$(snap_confine_LDFLAGS) $(LDFLAGS) -o $@
+am_snap_confine_unit_tests_OBJECTS =  \
+	snap_confine_unit_tests-unit-tests-main.$(OBJEXT) \
+	snap_confine_unit_tests-unit-tests.$(OBJEXT) \
+	snap_confine_unit_tests-utils-test.$(OBJEXT) \
+	snap_confine_unit_tests-cleanup-funcs-test.$(OBJEXT) \
+	snap_confine_unit_tests-mount-support-test.$(OBJEXT) \
+	snap_confine_unit_tests-verify-executable-name-test.$(OBJEXT)
+snap_confine_unit_tests_OBJECTS =  \
+	$(am_snap_confine_unit_tests_OBJECTS)
+am__DEPENDENCIES_4 = $(am__DEPENDENCIES_1) $(am__DEPENDENCIES_2) \
+	$(am__DEPENDENCIES_3)
+snap_confine_unit_tests_DEPENDENCIES = $(am__DEPENDENCIES_4) \
+	$(am__DEPENDENCIES_1)
+snap_confine_unit_tests_LINK = $(CCLD) \
+	$(snap_confine_unit_tests_CFLAGS) $(CFLAGS) \
+	$(snap_confine_unit_tests_LDFLAGS) $(LDFLAGS) -o $@
 AM_V_P = $(am__v_P_@AM_V@)
 am__v_P_ = $(am__v_P_@AM_DEFAULT_V@)
 am__v_P_0 = false
@@ -161,8 +179,9 @@ AM_V_CCLD = $(am__v_CCLD_@AM_V@)
 am__v_CCLD_ = $(am__v_CCLD_@AM_DEFAULT_V@)
 am__v_CCLD_0 = @echo "  CCLD    " $@;
 am__v_CCLD_1 = 
-SOURCES = $(snap_confine_SOURCES)
-DIST_SOURCES = $(am__snap_confine_SOURCES_DIST)
+SOURCES = $(snap_confine_SOURCES) $(snap_confine_unit_tests_SOURCES)
+DIST_SOURCES = $(am__snap_confine_SOURCES_DIST) \
+	$(snap_confine_unit_tests_SOURCES)
 am__can_run_installinfo = \
   case $$AM_UPDATE_INFO_DIR in \
     n|no|NO) false;; \
@@ -211,6 +230,8 @@ ECHO_N = @ECHO_N@
 ECHO_T = @ECHO_T@
 EGREP = @EGREP@
 EXEEXT = @EXEEXT@
+GLIB_CFLAGS = @GLIB_CFLAGS@
+GLIB_LIBS = @GLIB_LIBS@
 GREP = @GREP@
 INSTALL = @INSTALL@
 INSTALL_DATA = @INSTALL_DATA@
@@ -297,11 +318,30 @@ target_alias = @target_alias@
 top_build_prefix = @top_build_prefix@
 top_builddir = @top_builddir@
 top_srcdir = @top_srcdir@
-snap_confine_SOURCES = main.c utils.c utils.h snap.c snap.h classic.c \
-	classic.h mount-support.c mount-support.h \
-	mount-support-nvidia.c mount-support-nvidia.h $(am__append_1)
-snap_confine_CFLAGS = -Wall -Werror $(am__append_2)
-snap_confine_LDADD = $(am__append_3)
+snap_confine_SOURCES = main.c sc-main.c sc-main.h utils.c utils.h \
+	snap.c snap.h classic.c classic.h mount-support.c \
+	mount-support.h mount-support-nvidia.c mount-support-nvidia.h \
+	cleanup-funcs.c cleanup-funcs.h udev-support.c udev-support.h \
+	$(am__append_1)
+
+# This is here to help fix rpmlint hardening issue.
+# https://en.opensuse.org/openSUSE:Packaging_checks#non-position-independent-executable
+snap_confine_CFLAGS = -Wall -Werror $(AM_CFLAGS) $(LIBUDEV_CFLAGS) \
+	$(SUID_CFLAGS) $(am__append_2) $(am__append_4)
+snap_confine_LDFLAGS = $(AM_LDFLAGS) $(SUID_LDFLAGS)
+snap_confine_LDADD = $(LIBUDEV_LIBS) $(am__append_3) $(am__append_5)
+snap_confine_unit_tests_SOURCES = \
+	unit-tests-main.c \
+	unit-tests.c \
+	unit-tests.h \
+	utils-test.c \
+	cleanup-funcs-test.c \
+	mount-support-test.c \
+	verify-executable-name-test.c
+
+snap_confine_unit_tests_CFLAGS = $(snap_confine_CFLAGS) $(GLIB_CFLAGS)
+snap_confine_unit_tests_LDADD = $(snap_confine_LDADD) $(GLIB_LIBS)
+snap_confine_unit_tests_LDFLAGS = $(snap_confine_LDFLAGS)
 EXTRA_DIST = 80-snappy-assign.rules snappy-app-dev
 all: all-am
 
@@ -379,9 +419,16 @@ uninstall-libexecPROGRAMS:
 clean-libexecPROGRAMS:
 	-test -z "$(libexec_PROGRAMS)" || rm -f $(libexec_PROGRAMS)
 
+clean-noinstPROGRAMS:
+	-test -z "$(noinst_PROGRAMS)" || rm -f $(noinst_PROGRAMS)
+
 snap-confine$(EXEEXT): $(snap_confine_OBJECTS) $(snap_confine_DEPENDENCIES) $(EXTRA_snap_confine_DEPENDENCIES) 
 	@rm -f snap-confine$(EXEEXT)
 	$(AM_V_CCLD)$(snap_confine_LINK) $(snap_confine_OBJECTS) $(snap_confine_LDADD) $(LIBS)
+
+snap-confine-unit-tests$(EXEEXT): $(snap_confine_unit_tests_OBJECTS) $(snap_confine_unit_tests_DEPENDENCIES) $(EXTRA_snap_confine_unit_tests_DEPENDENCIES) 
+	@rm -f snap-confine-unit-tests$(EXEEXT)
+	$(AM_V_CCLD)$(snap_confine_unit_tests_LINK) $(snap_confine_unit_tests_OBJECTS) $(snap_confine_unit_tests_LDADD) $(LIBS)
 
 mostlyclean-compile:
 	-rm -f *.$(OBJEXT)
@@ -390,13 +437,21 @@ distclean-compile:
 	-rm -f *.tab.c
 
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snap_confine-classic.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snap_confine-cleanup-funcs.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snap_confine-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snap_confine-mount-support-nvidia.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snap_confine-mount-support.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snap_confine-sc-main.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snap_confine-seccomp-support.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snap_confine-snap.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snap_confine-udev-support.Po@am__quote@
 @AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snap_confine-utils.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snap_confine_unit_tests-cleanup-funcs-test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snap_confine_unit_tests-mount-support-test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snap_confine_unit_tests-unit-tests-main.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snap_confine_unit_tests-unit-tests.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snap_confine_unit_tests-utils-test.Po@am__quote@
+@AMDEP_TRUE@@am__include@ @am__quote@./$(DEPDIR)/snap_confine_unit_tests-verify-executable-name-test.Po@am__quote@
 
 .c.o:
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(COMPILE) -MT $@ -MD -MP -MF $(DEPDIR)/$*.Tpo -c -o $@ $<
@@ -425,6 +480,20 @@ snap_confine-main.obj: main.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='main.c' object='snap_confine-main.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -c -o snap_confine-main.obj `if test -f 'main.c'; then $(CYGPATH_W) 'main.c'; else $(CYGPATH_W) '$(srcdir)/main.c'; fi`
+
+snap_confine-sc-main.o: sc-main.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -MT snap_confine-sc-main.o -MD -MP -MF $(DEPDIR)/snap_confine-sc-main.Tpo -c -o snap_confine-sc-main.o `test -f 'sc-main.c' || echo '$(srcdir)/'`sc-main.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine-sc-main.Tpo $(DEPDIR)/snap_confine-sc-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sc-main.c' object='snap_confine-sc-main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -c -o snap_confine-sc-main.o `test -f 'sc-main.c' || echo '$(srcdir)/'`sc-main.c
+
+snap_confine-sc-main.obj: sc-main.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -MT snap_confine-sc-main.obj -MD -MP -MF $(DEPDIR)/snap_confine-sc-main.Tpo -c -o snap_confine-sc-main.obj `if test -f 'sc-main.c'; then $(CYGPATH_W) 'sc-main.c'; else $(CYGPATH_W) '$(srcdir)/sc-main.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine-sc-main.Tpo $(DEPDIR)/snap_confine-sc-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='sc-main.c' object='snap_confine-sc-main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -c -o snap_confine-sc-main.obj `if test -f 'sc-main.c'; then $(CYGPATH_W) 'sc-main.c'; else $(CYGPATH_W) '$(srcdir)/sc-main.c'; fi`
 
 snap_confine-utils.o: utils.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -MT snap_confine-utils.o -MD -MP -MF $(DEPDIR)/snap_confine-utils.Tpo -c -o snap_confine-utils.o `test -f 'utils.c' || echo '$(srcdir)/'`utils.c
@@ -496,19 +565,19 @@ snap_confine-mount-support-nvidia.obj: mount-support-nvidia.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -c -o snap_confine-mount-support-nvidia.obj `if test -f 'mount-support-nvidia.c'; then $(CYGPATH_W) 'mount-support-nvidia.c'; else $(CYGPATH_W) '$(srcdir)/mount-support-nvidia.c'; fi`
 
-snap_confine-seccomp-support.o: seccomp-support.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -MT snap_confine-seccomp-support.o -MD -MP -MF $(DEPDIR)/snap_confine-seccomp-support.Tpo -c -o snap_confine-seccomp-support.o `test -f 'seccomp-support.c' || echo '$(srcdir)/'`seccomp-support.c
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine-seccomp-support.Tpo $(DEPDIR)/snap_confine-seccomp-support.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='seccomp-support.c' object='snap_confine-seccomp-support.o' libtool=no @AMDEPBACKSLASH@
+snap_confine-cleanup-funcs.o: cleanup-funcs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -MT snap_confine-cleanup-funcs.o -MD -MP -MF $(DEPDIR)/snap_confine-cleanup-funcs.Tpo -c -o snap_confine-cleanup-funcs.o `test -f 'cleanup-funcs.c' || echo '$(srcdir)/'`cleanup-funcs.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine-cleanup-funcs.Tpo $(DEPDIR)/snap_confine-cleanup-funcs.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cleanup-funcs.c' object='snap_confine-cleanup-funcs.o' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -c -o snap_confine-seccomp-support.o `test -f 'seccomp-support.c' || echo '$(srcdir)/'`seccomp-support.c
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -c -o snap_confine-cleanup-funcs.o `test -f 'cleanup-funcs.c' || echo '$(srcdir)/'`cleanup-funcs.c
 
-snap_confine-seccomp-support.obj: seccomp-support.c
-@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -MT snap_confine-seccomp-support.obj -MD -MP -MF $(DEPDIR)/snap_confine-seccomp-support.Tpo -c -o snap_confine-seccomp-support.obj `if test -f 'seccomp-support.c'; then $(CYGPATH_W) 'seccomp-support.c'; else $(CYGPATH_W) '$(srcdir)/seccomp-support.c'; fi`
-@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine-seccomp-support.Tpo $(DEPDIR)/snap_confine-seccomp-support.Po
-@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='seccomp-support.c' object='snap_confine-seccomp-support.obj' libtool=no @AMDEPBACKSLASH@
+snap_confine-cleanup-funcs.obj: cleanup-funcs.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -MT snap_confine-cleanup-funcs.obj -MD -MP -MF $(DEPDIR)/snap_confine-cleanup-funcs.Tpo -c -o snap_confine-cleanup-funcs.obj `if test -f 'cleanup-funcs.c'; then $(CYGPATH_W) 'cleanup-funcs.c'; else $(CYGPATH_W) '$(srcdir)/cleanup-funcs.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine-cleanup-funcs.Tpo $(DEPDIR)/snap_confine-cleanup-funcs.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cleanup-funcs.c' object='snap_confine-cleanup-funcs.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
-@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -c -o snap_confine-seccomp-support.obj `if test -f 'seccomp-support.c'; then $(CYGPATH_W) 'seccomp-support.c'; else $(CYGPATH_W) '$(srcdir)/seccomp-support.c'; fi`
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -c -o snap_confine-cleanup-funcs.obj `if test -f 'cleanup-funcs.c'; then $(CYGPATH_W) 'cleanup-funcs.c'; else $(CYGPATH_W) '$(srcdir)/cleanup-funcs.c'; fi`
 
 snap_confine-udev-support.o: udev-support.c
 @am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -MT snap_confine-udev-support.o -MD -MP -MF $(DEPDIR)/snap_confine-udev-support.Tpo -c -o snap_confine-udev-support.o `test -f 'udev-support.c' || echo '$(srcdir)/'`udev-support.c
@@ -523,6 +592,104 @@ snap_confine-udev-support.obj: udev-support.c
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='udev-support.c' object='snap_confine-udev-support.obj' libtool=no @AMDEPBACKSLASH@
 @AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
 @am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -c -o snap_confine-udev-support.obj `if test -f 'udev-support.c'; then $(CYGPATH_W) 'udev-support.c'; else $(CYGPATH_W) '$(srcdir)/udev-support.c'; fi`
+
+snap_confine-seccomp-support.o: seccomp-support.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -MT snap_confine-seccomp-support.o -MD -MP -MF $(DEPDIR)/snap_confine-seccomp-support.Tpo -c -o snap_confine-seccomp-support.o `test -f 'seccomp-support.c' || echo '$(srcdir)/'`seccomp-support.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine-seccomp-support.Tpo $(DEPDIR)/snap_confine-seccomp-support.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='seccomp-support.c' object='snap_confine-seccomp-support.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -c -o snap_confine-seccomp-support.o `test -f 'seccomp-support.c' || echo '$(srcdir)/'`seccomp-support.c
+
+snap_confine-seccomp-support.obj: seccomp-support.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -MT snap_confine-seccomp-support.obj -MD -MP -MF $(DEPDIR)/snap_confine-seccomp-support.Tpo -c -o snap_confine-seccomp-support.obj `if test -f 'seccomp-support.c'; then $(CYGPATH_W) 'seccomp-support.c'; else $(CYGPATH_W) '$(srcdir)/seccomp-support.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine-seccomp-support.Tpo $(DEPDIR)/snap_confine-seccomp-support.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='seccomp-support.c' object='snap_confine-seccomp-support.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_CFLAGS) $(CFLAGS) -c -o snap_confine-seccomp-support.obj `if test -f 'seccomp-support.c'; then $(CYGPATH_W) 'seccomp-support.c'; else $(CYGPATH_W) '$(srcdir)/seccomp-support.c'; fi`
+
+snap_confine_unit_tests-unit-tests-main.o: unit-tests-main.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -MT snap_confine_unit_tests-unit-tests-main.o -MD -MP -MF $(DEPDIR)/snap_confine_unit_tests-unit-tests-main.Tpo -c -o snap_confine_unit_tests-unit-tests-main.o `test -f 'unit-tests-main.c' || echo '$(srcdir)/'`unit-tests-main.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine_unit_tests-unit-tests-main.Tpo $(DEPDIR)/snap_confine_unit_tests-unit-tests-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='unit-tests-main.c' object='snap_confine_unit_tests-unit-tests-main.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -c -o snap_confine_unit_tests-unit-tests-main.o `test -f 'unit-tests-main.c' || echo '$(srcdir)/'`unit-tests-main.c
+
+snap_confine_unit_tests-unit-tests-main.obj: unit-tests-main.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -MT snap_confine_unit_tests-unit-tests-main.obj -MD -MP -MF $(DEPDIR)/snap_confine_unit_tests-unit-tests-main.Tpo -c -o snap_confine_unit_tests-unit-tests-main.obj `if test -f 'unit-tests-main.c'; then $(CYGPATH_W) 'unit-tests-main.c'; else $(CYGPATH_W) '$(srcdir)/unit-tests-main.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine_unit_tests-unit-tests-main.Tpo $(DEPDIR)/snap_confine_unit_tests-unit-tests-main.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='unit-tests-main.c' object='snap_confine_unit_tests-unit-tests-main.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -c -o snap_confine_unit_tests-unit-tests-main.obj `if test -f 'unit-tests-main.c'; then $(CYGPATH_W) 'unit-tests-main.c'; else $(CYGPATH_W) '$(srcdir)/unit-tests-main.c'; fi`
+
+snap_confine_unit_tests-unit-tests.o: unit-tests.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -MT snap_confine_unit_tests-unit-tests.o -MD -MP -MF $(DEPDIR)/snap_confine_unit_tests-unit-tests.Tpo -c -o snap_confine_unit_tests-unit-tests.o `test -f 'unit-tests.c' || echo '$(srcdir)/'`unit-tests.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine_unit_tests-unit-tests.Tpo $(DEPDIR)/snap_confine_unit_tests-unit-tests.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='unit-tests.c' object='snap_confine_unit_tests-unit-tests.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -c -o snap_confine_unit_tests-unit-tests.o `test -f 'unit-tests.c' || echo '$(srcdir)/'`unit-tests.c
+
+snap_confine_unit_tests-unit-tests.obj: unit-tests.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -MT snap_confine_unit_tests-unit-tests.obj -MD -MP -MF $(DEPDIR)/snap_confine_unit_tests-unit-tests.Tpo -c -o snap_confine_unit_tests-unit-tests.obj `if test -f 'unit-tests.c'; then $(CYGPATH_W) 'unit-tests.c'; else $(CYGPATH_W) '$(srcdir)/unit-tests.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine_unit_tests-unit-tests.Tpo $(DEPDIR)/snap_confine_unit_tests-unit-tests.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='unit-tests.c' object='snap_confine_unit_tests-unit-tests.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -c -o snap_confine_unit_tests-unit-tests.obj `if test -f 'unit-tests.c'; then $(CYGPATH_W) 'unit-tests.c'; else $(CYGPATH_W) '$(srcdir)/unit-tests.c'; fi`
+
+snap_confine_unit_tests-utils-test.o: utils-test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -MT snap_confine_unit_tests-utils-test.o -MD -MP -MF $(DEPDIR)/snap_confine_unit_tests-utils-test.Tpo -c -o snap_confine_unit_tests-utils-test.o `test -f 'utils-test.c' || echo '$(srcdir)/'`utils-test.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine_unit_tests-utils-test.Tpo $(DEPDIR)/snap_confine_unit_tests-utils-test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='utils-test.c' object='snap_confine_unit_tests-utils-test.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -c -o snap_confine_unit_tests-utils-test.o `test -f 'utils-test.c' || echo '$(srcdir)/'`utils-test.c
+
+snap_confine_unit_tests-utils-test.obj: utils-test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -MT snap_confine_unit_tests-utils-test.obj -MD -MP -MF $(DEPDIR)/snap_confine_unit_tests-utils-test.Tpo -c -o snap_confine_unit_tests-utils-test.obj `if test -f 'utils-test.c'; then $(CYGPATH_W) 'utils-test.c'; else $(CYGPATH_W) '$(srcdir)/utils-test.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine_unit_tests-utils-test.Tpo $(DEPDIR)/snap_confine_unit_tests-utils-test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='utils-test.c' object='snap_confine_unit_tests-utils-test.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -c -o snap_confine_unit_tests-utils-test.obj `if test -f 'utils-test.c'; then $(CYGPATH_W) 'utils-test.c'; else $(CYGPATH_W) '$(srcdir)/utils-test.c'; fi`
+
+snap_confine_unit_tests-cleanup-funcs-test.o: cleanup-funcs-test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -MT snap_confine_unit_tests-cleanup-funcs-test.o -MD -MP -MF $(DEPDIR)/snap_confine_unit_tests-cleanup-funcs-test.Tpo -c -o snap_confine_unit_tests-cleanup-funcs-test.o `test -f 'cleanup-funcs-test.c' || echo '$(srcdir)/'`cleanup-funcs-test.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine_unit_tests-cleanup-funcs-test.Tpo $(DEPDIR)/snap_confine_unit_tests-cleanup-funcs-test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cleanup-funcs-test.c' object='snap_confine_unit_tests-cleanup-funcs-test.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -c -o snap_confine_unit_tests-cleanup-funcs-test.o `test -f 'cleanup-funcs-test.c' || echo '$(srcdir)/'`cleanup-funcs-test.c
+
+snap_confine_unit_tests-cleanup-funcs-test.obj: cleanup-funcs-test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -MT snap_confine_unit_tests-cleanup-funcs-test.obj -MD -MP -MF $(DEPDIR)/snap_confine_unit_tests-cleanup-funcs-test.Tpo -c -o snap_confine_unit_tests-cleanup-funcs-test.obj `if test -f 'cleanup-funcs-test.c'; then $(CYGPATH_W) 'cleanup-funcs-test.c'; else $(CYGPATH_W) '$(srcdir)/cleanup-funcs-test.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine_unit_tests-cleanup-funcs-test.Tpo $(DEPDIR)/snap_confine_unit_tests-cleanup-funcs-test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='cleanup-funcs-test.c' object='snap_confine_unit_tests-cleanup-funcs-test.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -c -o snap_confine_unit_tests-cleanup-funcs-test.obj `if test -f 'cleanup-funcs-test.c'; then $(CYGPATH_W) 'cleanup-funcs-test.c'; else $(CYGPATH_W) '$(srcdir)/cleanup-funcs-test.c'; fi`
+
+snap_confine_unit_tests-mount-support-test.o: mount-support-test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -MT snap_confine_unit_tests-mount-support-test.o -MD -MP -MF $(DEPDIR)/snap_confine_unit_tests-mount-support-test.Tpo -c -o snap_confine_unit_tests-mount-support-test.o `test -f 'mount-support-test.c' || echo '$(srcdir)/'`mount-support-test.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine_unit_tests-mount-support-test.Tpo $(DEPDIR)/snap_confine_unit_tests-mount-support-test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='mount-support-test.c' object='snap_confine_unit_tests-mount-support-test.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -c -o snap_confine_unit_tests-mount-support-test.o `test -f 'mount-support-test.c' || echo '$(srcdir)/'`mount-support-test.c
+
+snap_confine_unit_tests-mount-support-test.obj: mount-support-test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -MT snap_confine_unit_tests-mount-support-test.obj -MD -MP -MF $(DEPDIR)/snap_confine_unit_tests-mount-support-test.Tpo -c -o snap_confine_unit_tests-mount-support-test.obj `if test -f 'mount-support-test.c'; then $(CYGPATH_W) 'mount-support-test.c'; else $(CYGPATH_W) '$(srcdir)/mount-support-test.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine_unit_tests-mount-support-test.Tpo $(DEPDIR)/snap_confine_unit_tests-mount-support-test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='mount-support-test.c' object='snap_confine_unit_tests-mount-support-test.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -c -o snap_confine_unit_tests-mount-support-test.obj `if test -f 'mount-support-test.c'; then $(CYGPATH_W) 'mount-support-test.c'; else $(CYGPATH_W) '$(srcdir)/mount-support-test.c'; fi`
+
+snap_confine_unit_tests-verify-executable-name-test.o: verify-executable-name-test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -MT snap_confine_unit_tests-verify-executable-name-test.o -MD -MP -MF $(DEPDIR)/snap_confine_unit_tests-verify-executable-name-test.Tpo -c -o snap_confine_unit_tests-verify-executable-name-test.o `test -f 'verify-executable-name-test.c' || echo '$(srcdir)/'`verify-executable-name-test.c
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine_unit_tests-verify-executable-name-test.Tpo $(DEPDIR)/snap_confine_unit_tests-verify-executable-name-test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='verify-executable-name-test.c' object='snap_confine_unit_tests-verify-executable-name-test.o' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -c -o snap_confine_unit_tests-verify-executable-name-test.o `test -f 'verify-executable-name-test.c' || echo '$(srcdir)/'`verify-executable-name-test.c
+
+snap_confine_unit_tests-verify-executable-name-test.obj: verify-executable-name-test.c
+@am__fastdepCC_TRUE@	$(AM_V_CC)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -MT snap_confine_unit_tests-verify-executable-name-test.obj -MD -MP -MF $(DEPDIR)/snap_confine_unit_tests-verify-executable-name-test.Tpo -c -o snap_confine_unit_tests-verify-executable-name-test.obj `if test -f 'verify-executable-name-test.c'; then $(CYGPATH_W) 'verify-executable-name-test.c'; else $(CYGPATH_W) '$(srcdir)/verify-executable-name-test.c'; fi`
+@am__fastdepCC_TRUE@	$(AM_V_at)$(am__mv) $(DEPDIR)/snap_confine_unit_tests-verify-executable-name-test.Tpo $(DEPDIR)/snap_confine_unit_tests-verify-executable-name-test.Po
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	$(AM_V_CC)source='verify-executable-name-test.c' object='snap_confine_unit_tests-verify-executable-name-test.obj' libtool=no @AMDEPBACKSLASH@
+@AMDEP_TRUE@@am__fastdepCC_FALSE@	DEPDIR=$(DEPDIR) $(CCDEPMODE) $(depcomp) @AMDEPBACKSLASH@
+@am__fastdepCC_FALSE@	$(AM_V_CC@am__nodep@)$(CC) $(DEFS) $(DEFAULT_INCLUDES) $(INCLUDES) $(AM_CPPFLAGS) $(CPPFLAGS) $(snap_confine_unit_tests_CFLAGS) $(CFLAGS) -c -o snap_confine_unit_tests-verify-executable-name-test.obj `if test -f 'verify-executable-name-test.c'; then $(CYGPATH_W) 'verify-executable-name-test.c'; else $(CYGPATH_W) '$(srcdir)/verify-executable-name-test.c'; fi`
 
 ID: $(am__tagged_files)
 	$(am__define_uniq_tagged_files); mkid -fID $$unique
@@ -643,11 +810,10 @@ distclean-generic:
 maintainer-clean-generic:
 	@echo "This command is intended for maintainers to use"
 	@echo "it deletes files that may require special tools to rebuild."
-@STRICT_CONFINEMENT_FALSE@install-exec-local:
-@STRICT_CONFINEMENT_FALSE@install-data-local:
 clean: clean-am
 
-clean-am: clean-generic clean-libexecPROGRAMS mostlyclean-am
+clean-am: clean-generic clean-libexecPROGRAMS clean-noinstPROGRAMS \
+	mostlyclean-am
 
 distclean: distclean-am
 	-rm -rf ./$(DEPDIR)
@@ -718,18 +884,19 @@ uninstall-am: uninstall-libexecPROGRAMS
 .MAKE: install-am install-exec-am install-strip
 
 .PHONY: CTAGS GTAGS TAGS all all-am check check-am clean clean-generic \
-	clean-libexecPROGRAMS cscopelist-am ctags ctags-am distclean \
-	distclean-compile distclean-generic distclean-tags distdir dvi \
-	dvi-am html html-am info info-am install install-am \
-	install-data install-data-am install-data-local install-dvi \
-	install-dvi-am install-exec install-exec-am install-exec-hook \
-	install-exec-local install-html install-html-am install-info \
-	install-info-am install-libexecPROGRAMS install-man \
-	install-pdf install-pdf-am install-ps install-ps-am \
-	install-strip installcheck installcheck-am installdirs \
-	maintainer-clean maintainer-clean-generic mostlyclean \
-	mostlyclean-compile mostlyclean-generic pdf pdf-am ps ps-am \
-	tags tags-am uninstall uninstall-am uninstall-libexecPROGRAMS
+	clean-libexecPROGRAMS clean-noinstPROGRAMS cscopelist-am ctags \
+	ctags-am distclean distclean-compile distclean-generic \
+	distclean-tags distdir dvi dvi-am html html-am info info-am \
+	install install-am install-data install-data-am \
+	install-data-local install-dvi install-dvi-am install-exec \
+	install-exec-am install-exec-hook install-exec-local \
+	install-html install-html-am install-info install-info-am \
+	install-libexecPROGRAMS install-man install-pdf install-pdf-am \
+	install-ps install-ps-am install-strip installcheck \
+	installcheck-am installdirs maintainer-clean \
+	maintainer-clean-generic mostlyclean mostlyclean-compile \
+	mostlyclean-generic pdf pdf-am ps ps-am tags tags-am uninstall \
+	uninstall-am uninstall-libexecPROGRAMS
 
 .PRECIOUS: Makefile
 
@@ -746,9 +913,13 @@ check-syntax:
 	       diff -Naur "$$f" "$$out" || exit 1; \
 	done;
 
+.PHONY: check-unit-tests
+check-unit-tests: snap-confine-unit-tests
+	./snap-confine-unit-tests
+
 # Run check-syntax when checking
 # TODO: conver those to autotools-style tests later
-check: check-syntax
+check: check-syntax check-unit-tests
 
 .PHONY: fmt
 fmt:
@@ -761,14 +932,14 @@ fmt:
 # http://www.gnu.org/software/automake/manual/automake.html#Hard_002dCoded-Install-Paths
 #
 # Install udev rules
-@STRICT_CONFINEMENT_TRUE@install-data-local:
-@STRICT_CONFINEMENT_TRUE@	install -d -m 755 $(DESTDIR)$(shell pkg-config udev --variable=udevdir)/rules.d
-@STRICT_CONFINEMENT_TRUE@	install -m 644 $(srcdir)/80-snappy-assign.rules $(DESTDIR)$(shell pkg-config udev --variable=udevdir)/rules.d
+install-data-local:
+	install -d -m 755 $(DESTDIR)$(shell pkg-config udev --variable=udevdir)/rules.d
+	install -m 644 $(srcdir)/80-snappy-assign.rules $(DESTDIR)$(shell pkg-config udev --variable=udevdir)/rules.d
 
 # Install support script for udev rules
-@STRICT_CONFINEMENT_TRUE@install-exec-local:
-@STRICT_CONFINEMENT_TRUE@	install -d -m 755 $(DESTDIR)$(shell pkg-config udev --variable=udevdir)
-@STRICT_CONFINEMENT_TRUE@	install -m 755 $(srcdir)/snappy-app-dev $(DESTDIR)$(shell pkg-config udev --variable=udevdir)
+install-exec-local:
+	install -d -m 755 $(DESTDIR)$(shell pkg-config udev --variable=udevdir)
+	install -m 755 $(srcdir)/snappy-app-dev $(DESTDIR)$(shell pkg-config udev --variable=udevdir)
 
 # Ensure that snap-confine is +s (setuid)
 install-exec-hook:

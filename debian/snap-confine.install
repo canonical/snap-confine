@@ -1,3 +1,0 @@
-debian/usr.bin.snap-confine etc/apparmor.d
-lib/*
-usr/lib/snapd/*
