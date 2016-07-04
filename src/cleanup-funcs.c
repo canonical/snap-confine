@@ -15,11 +15,23 @@
  *
  */
 
-#ifndef SNAP_CONFINE_SNAP_H
-#define SNAP_CONFINE_SNAP_H
+#include <stdlib.h>
+#include <stdio.h>
+#include <mntent.h>
 
-#include <stdbool.h>
+void sc_cleanup_string(char **ptr)
+{
+	free(*ptr);
+}
 
-bool verify_security_tag(const char *security_tag);
+void sc_cleanup_file(FILE ** ptr)
+{
+	if (*ptr != NULL)
+		fclose(*ptr);
+}
 
-#endif
+void sc_cleanup_endmntent(FILE ** ptr)
+{
+	if (*ptr != NULL)
+		endmntent(*ptr);
+}

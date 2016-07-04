@@ -15,11 +15,5 @@
  *
  */
 
-#ifndef SNAP_CONFINE_SNAP_H
-#define SNAP_CONFINE_SNAP_H
-
-#include <stdbool.h>
-
-bool verify_security_tag(const char *security_tag);
-
-#endif
+#include "utils.h"
+#include "utils.c"

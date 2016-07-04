@@ -14,12 +14,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#include "unit-tests.h"
 
-#ifndef SNAP_CONFINE_SNAP_H
-#define SNAP_CONFINE_SNAP_H
-
-#include <stdbool.h>
-
-bool verify_security_tag(const char *security_tag);
-
-#endif
+int main(int argc, char **argv)
+{
+	return sc_run_unit_tests(&argc, &argv);
+}

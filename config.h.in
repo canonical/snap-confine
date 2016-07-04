@@ -1,5 +1,8 @@
 /* config.h.in.  Generated from configure.ac by autoheader.  */
 
+/* Build with apparmor support */
+#undef HAVE_APPARMOR
+
 /* Define to 1 if your system has a working `chown' function. */
 #undef HAVE_CHOWN
 
@@ -23,6 +26,9 @@
 
 /* Define to 1 if you have the `regcomp' function. */
 #undef HAVE_REGCOMP
+
+/* Build with seccomp support */
+#undef HAVE_SECCOMP
 
 /* Define to 1 if you have the `setenv' function. */
 #undef HAVE_SETENV
@@ -104,9 +110,6 @@
 
 /* Define to 1 if you have the ANSI C header files. */
 #undef STDC_HEADERS
-
-/* Define if strict apparmor confinement is available */
-#undef STRICT_CONFINEMENT
 
 /* Enable extensions on AIX 3, Interix.  */
 #ifndef _ALL_SOURCE

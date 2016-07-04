@@ -30,17 +30,18 @@
 #include <errno.h>
 #include <sched.h>
 #include <string.h>
+#include <mntent.h>
 
 #include "utils.h"
 #include "snap.h"
 #include "classic.h"
 #include "mount-support-nvidia.h"
+#include "cleanup-funcs.h"
 
 #define MAX_BUF 1000
 
-void setup_private_mount(const char *appname)
+void setup_private_mount(const char *security_tag)
 {
-#ifdef STRICT_CONFINEMENT
 	uid_t uid = getuid();
 	gid_t gid = getgid();
 	char tmpdir[MAX_BUF] = { 0 };
@@ -51,7 +52,7 @@ void setup_private_mount(const char *appname)
 	// Under that basedir, we put a 1777 /tmp dir that is then bind
 	// mounted for the applications to use
 	must_snprintf(tmpdir, sizeof(tmpdir), "/tmp/snap.%d_%s_XXXXXX", uid,
-		      appname);
+		      security_tag);
 	if (mkdtemp(tmpdir) == NULL) {
 		die("unable to create tmpdir");
 	}
@@ -101,12 +102,10 @@ void setup_private_mount(const char *appname)
 			die("unable to set '%s'", tmpd[i]);
 		}
 	}
-#endif				// ifdef STRICT_CONFINEMENT
 }
 
 void setup_private_pts()
 {
-#ifdef STRICT_CONFINEMENT
 	// See https://www.kernel.org/doc/Documentation/filesystems/devpts.txt
 	//
 	// Ubuntu by default uses devpts 'single-instance' mode where
@@ -138,7 +137,6 @@ void setup_private_pts()
 	if (mount("/dev/pts/ptmx", "/dev/ptmx", "none", MS_BIND, 0)) {
 		die("unable to mount '/dev/pts/ptmx'->'/dev/ptmx'");
 	}
-#endif				// ifdef STRICT_CONFINEMENT
 }
 
 #ifdef NVIDIA_ARCH
@@ -215,6 +213,24 @@ void setup_snappy_os_mounts()
 			die("cannot bind mount %s to %s", src, dst);
 		}
 	}
+	// Since we mounted /etc from the host above, we need to put
+	// /etc/alternatives from the os snap back.
+	// https://bugs.launchpad.net/snap-confine/+bug/1580018
+	const char *etc_alternatives = "/etc/alternatives";
+	if (access(etc_alternatives, F_OK) == 0) {
+		char src[512];
+		char dst[512];
+		must_snprintf(src, sizeof src, "%s%s", core_snap_dir,
+			      etc_alternatives);
+		must_snprintf(dst, sizeof dst, "%s%s", rootfs_dir,
+			      etc_alternatives);
+		debug("bind mounting %s to %s", src, dst);
+		// NOTE: MS_SLAVE so that the started process cannot maliciously mount
+		// anything into those places and affect the system on the outside.
+		if (mount(src, dst, NULL, MS_BIND | MS_SLAVE, NULL) != 0) {
+			die("cannot bind mount %s to %s", src, dst);
+		}
+	}
 #ifdef NVIDIA_ARCH
 	// Make this conditional on Nvidia support for Arch as Ubuntu doesn't use
 	// this so far and it requires a very recent version of the core snap.
@@ -252,7 +268,9 @@ void setup_snappy_os_mounts()
 	// passwd,groups} is in sync between the two systems (probably via
 	// selected bind mounts of those files).
 	const char *mounts[] =
-	    { "/bin", "/sbin", "/lib", "/lib32", "/libx32", "/lib64", "/usr" };
+	    { "/bin", "/sbin", "/lib", "/lib32", "/libx32", "/lib64", "/usr",
+		"/etc/alternatives"
+	};
 	for (int i = 0; i < sizeof(mounts) / sizeof(char *); i++) {
 		// we mount the OS snap /bin over the real /bin in this NS
 		const char *dst = mounts[i];
@@ -293,4 +311,112 @@ void setup_slave_mount_namespace()
 	if (mount("none", "/", NULL, MS_REC | MS_SLAVE, NULL) != 0) {
 		die("can not make make / rslave");
 	}
+}
+
+void sc_setup_mount_profiles(const char *security_tag)
+{
+	debug("%s: %s", __FUNCTION__, security_tag);
+
+	FILE *f __attribute__ ((cleanup(sc_cleanup_endmntent))) = NULL;
+	const char *mount_profile_dir = "/var/lib/snapd/mount";
+
+	char profile_path[PATH_MAX];
+	must_snprintf(profile_path, sizeof(profile_path), "%s/%s.fstab",
+		      mount_profile_dir, security_tag);
+
+	debug("opening mount profile %s", profile_path);
+	f = setmntent(profile_path, "r");
+	// it is ok for the file to not exist
+	if (f == NULL && errno == ENOENT) {
+		debug("mount profile %s doesn't exist, ignoring", profile_path);
+		return;
+	}
+	// however any other error is a real error
+	if (f == NULL) {
+		die("cannot open %s", profile_path);
+	}
+
+	struct mntent *m = NULL;
+	while ((m = getmntent(f)) != NULL) {
+		debug("read mount entry\n"
+		      "\tmnt_fsname: %s\n"
+		      "\tmnt_dir: %s\n"
+		      "\tmnt_type: %s\n"
+		      "\tmnt_opts: %s\n"
+		      "\tmnt_freq: %d\n"
+		      "\tmnt_passno: %d",
+		      m->mnt_fsname, m->mnt_dir, m->mnt_type,
+		      m->mnt_opts, m->mnt_freq, m->mnt_passno);
+		int flags = MS_BIND | MS_RDONLY | MS_NODEV | MS_NOSUID;
+		debug("initial flags are: bind,ro,nodev,nosuid");
+		if (strcmp(m->mnt_type, "none") != 0) {
+			die("only 'none' filesystem type is supported");
+		}
+		if (hasmntopt(m, "bind") == NULL) {
+			die("the bind mount flag is mandatory");
+		}
+		if (hasmntopt(m, "rw") != NULL) {
+			flags &= ~MS_RDONLY;
+		}
+		if (mount(m->mnt_fsname, m->mnt_dir, NULL, flags, NULL) != 0) {
+			die("cannot mount %s at %s with options %s",
+			    m->mnt_fsname, m->mnt_dir, m->mnt_opts);
+		}
+	}
+}
+
+/**
+ * @path:    a pathname where / replaced with '\0'.
+ * @offsetp: pointer to int showing which path segment was last seen.
+ *           Updated on return to reflect the next segment.
+ * @fulllen: full original path length.
+ * Returns a pointer to the next path segment, or NULL if done.
+ */
+static char * __attribute__ ((used))
+    get_nextpath(char *path, size_t * offsetp, size_t fulllen)
+{
+	int offset = *offsetp;
+
+	if (offset >= fulllen)
+		return NULL;
+
+	while (path[offset] != '\0' && offset < fulllen)
+		offset++;
+	while (path[offset] == '\0' && offset < fulllen)
+		offset++;
+
+	*offsetp = offset;
+	return (offset < fulllen) ? &path[offset] : NULL;
+}
+
+/**
+ * Check that @subdir is a subdir of @dir.
+**/
+static bool __attribute__ ((used))
+    is_subdir(const char *subdir, const char *dir)
+{
+	size_t dirlen = strlen(dir);
+	size_t subdirlen = strlen(subdir);
+
+	// @dir has to be at least as long as @subdir
+	if (subdirlen < dirlen)
+		return false;
+	// @dir has to be a prefix of @subdir
+	if (strncmp(subdir, dir, dirlen) != 0)
+		return false;
+	// @dir can look like "path/" (that is, end with the directory separator).
+	// When that is the case then given the test above we can be sure @subdir
+	// is a real subdirectory.
+	if (dirlen > 0 && dir[dirlen - 1] == '/')
+		return true;
+	// @subdir can look like "path/stuff" and when the directory separator
+	// is exactly at the spot where @dir ends (that is, it was not caught
+	// by the test above) then @subdir is a real subdirectory.
+	if (subdir[dirlen] == '/' && dirlen > 0)
+		return true;
+	// If both @dir and @subdir have identical length then given that the
+	// prefix check above @subdir is a real subdirectory.
+	if (subdirlen == dirlen)
+		return true;
+	return false;
 }

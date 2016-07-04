@@ -14,6 +14,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  *
  */
+#include <stdlib.h>
 #include <stdbool.h>
 
 #ifndef CORE_LAUNCHER_UTILS_H

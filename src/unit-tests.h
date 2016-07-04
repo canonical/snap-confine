@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2015 Canonical Ltd
+ * Copyright (C) 2016 Canonical Ltd
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as
@@ -15,11 +15,15 @@
  *
  */
 
-#ifndef SNAP_CONFINE_SNAP_H
-#define SNAP_CONFINE_SNAP_H
+#ifndef SNAP_CONFINE_UNIT_TESTS_H
+#define SNAP_CONFINE_UNIT_TESTS_H
 
-#include <stdbool.h>
+/**
+ * Run unit tests and exit.
+ *
+ * The function inspects and modifies command line arguments.
+ * Internally it is using glib-test functions.
+ */
+int sc_run_unit_tests(int *argc, char ***argv);
 
-bool verify_security_tag(const char *security_tag);
-
-#endif
+#endif				// SNAP_CONFINE_SANITY_H
