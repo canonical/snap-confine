@@ -2,6 +2,7 @@ Source: snap-confine
 Section: utils
 Priority: optional
 Maintainer: Steve Langasek <vorlon@debian.org>
+Uploaders: Michael Hudson-Doyle <michael.hudson@ubuntu.com>
 Build-Depends: autoconf,
                automake,
                autotools-dev,

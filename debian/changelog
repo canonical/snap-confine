@@ -6,6 +6,7 @@ snap-confine (1.0.34-1) UNRELEASED; urgency=medium
   * Update apparmor profile.
   * Change libexecdir from /usr/lib/snap-confine to /usr/lib/snapd.
   * Install manpages.
+  * Add myself to uploaders.
 
  -- Michael Hudson-Doyle <michael.hudson@ubuntu.com>  Mon, 04 Jul 2016 12:18:54 +1200
 
