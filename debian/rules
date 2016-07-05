@@ -12,7 +12,7 @@ include /usr/share/dpkg/buildflags.mk
 ifeq ($(shell dpkg-vendor --query Vendor),Ubuntu)
     VENDOR_ARGS=--enable-rootfs-is-core-snap
 else
-    VENDOR_ARGS=--disable-confinement
+    VENDOR_ARGS=--disable-apparmor
 endif
 
 %:
