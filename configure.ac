@@ -1,5 +1,5 @@
 AC_PREREQ([2.69])
-AC_INIT([snap-confine], [1.0.34], [snapcraft@lists.ubuntu.com])
+AC_INIT([snap-confine], [1.0.35], [snapcraft@lists.ubuntu.com])
 AC_CONFIG_SRCDIR([src/main.c])
 AC_CONFIG_HEADERS([config.h])
 AC_USE_SYSTEM_EXTENSIONS
@@ -60,7 +60,7 @@ AM_CONDITIONAL([SECCOMP], [test "x$enable_seccomp" = "xyes"])
 
 # Enable older tests only when confinement is enabled and we're building for PC
 # The tests are of smaller value as we port more and more tests to spread.
-AM_CONDITIONAL([CONFINEMENT_TESTS], [test "x$enable_apparmor" = "xyes" && test "x$enable_seccomp" = "xyes" && (test "x$host_cpu" = "xx86_64" && test "x$build_cpu" = "xx86_64") || (test "x$host_cpu" = "xi686" && test "x$build_cpu" = "xi686")])
+AM_CONDITIONAL([CONFINEMENT_TESTS], [test "x$enable_apparmor" = "xyes" && test "x$enable_seccomp" = "xyes" && ((test "x$host_cpu" = "xx86_64" && test "x$build_cpu" = "xx86_64") || (test "x$host_cpu" = "xi686" && test "x$build_cpu" = "xi686"))])
 
 # Check if seccomp userspace library is available
 AS_IF([test "x$enable_seccomp" = "xyes"], [
