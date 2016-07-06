@@ -1,3 +1,15 @@
+snap-confine (1.0.35-1) unstable; urgency=medium
+
+  * New upstream release.
+    - use execle() with clean environment instead of execl() when calling
+      snappy-add-dev to avoid influencing snappy-add-dev and allowing privilege
+      escalation. snappy-app-dev is only called when devices are assigned via
+      udev tagging, but currently snapd does not create these udev tags during
+      'snap install' or 'snap connect' so this code branch is not entered during
+      app invocation.
+
+ -- Michael Hudson-Doyle <michael.hudson@ubuntu.com>  Thu, 07 Jul 2016 09:59:48 +1200
+
 snap-confine (1.0.34-1) unstable; urgency=medium
 
   [ Michael Hudson-Doyle ]
