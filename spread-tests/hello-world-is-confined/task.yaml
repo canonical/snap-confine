@@ -1,0 +1,13 @@
+summary: Check that hello-world.evil is confined
+# This is blacklisted on distributions without full confinement
+systems: [-debian-8, -debian-sid-grub]
+restore: |
+    snap remove hello-world
+execute: |
+    cd /
+    echo Run some hello-world stuff
+    snap install hello-world
+    hello-world.echo | grep Hello
+    hello-world.env | grep SNAP_NAME=hello-world
+    echo Ensure that we get an error if hello-world.evil does not return an error
+    if hello-world.evil; then exit 1; fi
