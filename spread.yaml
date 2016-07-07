@@ -10,7 +10,7 @@ backends:
         systems:
             - ubuntu-16.04-64-grub
             # - ubuntu-16.04-32-grub
-            - debian-8
+            - debian-sid-grub
 
 path: /remote/path/
 
@@ -28,7 +28,6 @@ prepare: |
             trap "sysctl -w net.ipv6.conf.all.disable_ipv6=0" EXIT
             ;;
         debian)
-            echo "deb http://ftp.de.debian.org/debian sid main" > /etc/apt/sources.list.d/snappy.list
             ;;
     esac
     case $release_ID in
