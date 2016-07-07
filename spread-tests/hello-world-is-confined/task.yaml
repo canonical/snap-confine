@@ -1,6 +1,6 @@
 summary: Check that hello-world.evil is confined
 # This is blacklisted on distributions without full confinement
-systems: [-debian-8, -debian-sid-grub]
+systems: [-debian-sid-grub]
 restore: |
     snap remove hello-world
 execute: |
