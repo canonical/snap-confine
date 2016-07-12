@@ -1,6 +1,8 @@
 snap-confine (1.0.36-1) UNRELEASED; urgency=medium
 
   * New upstream release.
+  * Do not pass --enable-rootfs-is-core-snap to ./configure on Ubuntu.
+  * Only pass --enable-nvidia-ubuntu to ./configure on Ubuntu.
 
  -- Michael Hudson-Doyle <michael.hudson@ubuntu.com>  Mon, 11 Jul 2016 20:07:40 +1200
 
