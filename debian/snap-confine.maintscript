@@ -1,0 +1,1 @@
+rm_conffile /etc/apparmor.d/usr.bin.snap-confine 1.0.36-1~ -- "$@"
