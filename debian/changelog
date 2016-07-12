@@ -1,11 +1,11 @@
-snap-confine (1.0.36-1) UNRELEASED; urgency=medium
+snap-confine (1.0.36-1) unstable; urgency=medium
 
   * New upstream release.
   * Do not pass --enable-rootfs-is-core-snap to ./configure on Ubuntu.
   * Only pass --enable-nvidia-ubuntu to ./configure on Ubuntu.
   * Update apparmor profile to actually confine /usr/lib/snapd/snap-confine.
 
- -- Michael Hudson-Doyle <michael.hudson@ubuntu.com>  Mon, 11 Jul 2016 20:07:40 +1200
+ -- Michael Hudson-Doyle <michael.hudson@ubuntu.com>  Wed, 13 Jul 2016 11:12:39 +1200
 
 snap-confine (1.0.35-1) unstable; urgency=medium
 
