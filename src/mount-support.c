@@ -24,9 +24,7 @@
 #include <sys/mount.h>
 #include <sys/stat.h>
 #include <sys/types.h>
-#ifdef ROOTFS_IS_CORE_SNAP
 #include <sys/syscall.h>
-#endif
 #include <errno.h>
 #include <sched.h>
 #include <string.h>
@@ -139,7 +137,21 @@ void setup_private_pts()
 	}
 }
 
-#ifdef NVIDIA_ARCH
+/**
+ * The hostfs directory should be added by packaging of snapd but the release
+ * with this directory is not universally available so to unblock some other
+ * features we can simply create the directory directly.
+ **/
+static void sc_mkdir_hostfs_if_missing()
+{
+	if (access(SC_HOSTFS_DIR, F_OK) != 0) {
+		debug("creating missing hostfs directory");
+		if (mkdir(SC_HOSTFS_DIR, 0755) != 0) {
+			die("cannot create %s", SC_HOSTFS_DIR);
+		}
+	}
+}
+
 static void sc_bind_mount_hostfs(const char *rootfs_dir)
 {
 	// Create a read-only bind mount from "/" to
@@ -156,12 +168,10 @@ static void sc_bind_mount_hostfs(const char *rootfs_dir)
 		}
 	}
 }
-#endif				// ifdef NVIDIA_ARCH
 
 void setup_snappy_os_mounts()
 {
 	debug("%s", __func__);
-#ifdef ROOTFS_IS_CORE_SNAP
 	char rootfs_dir[MAX_BUF] = { 0 };
 	// Create a temporary directory that will become the root directory of this
 	// process later on. The directory will be used as a mount point for the
@@ -195,6 +205,8 @@ void setup_snappy_os_mounts()
 		"/var/lib/snapd",	// to get access to snapd state and seccomp profiles
 		"/var/tmp",	// to get access to the other temporary directory
 		"/run",		// to get /run with sockets and what not
+		"/media",	// access to the users removable devices
+		"/lib/modules",	// access to the modules of the running kernel
 	};
 	for (int i = 0; i < sizeof(source_mounts) / sizeof *source_mounts; i++) {
 		const char *src = source_mounts[i];
@@ -231,11 +243,8 @@ void setup_snappy_os_mounts()
 			die("cannot bind mount %s to %s", src, dst);
 		}
 	}
-#ifdef NVIDIA_ARCH
-	// Make this conditional on Nvidia support for Arch as Ubuntu doesn't use
-	// this so far and it requires a very recent version of the core snap.
+	sc_mkdir_hostfs_if_missing();
 	sc_bind_mount_hostfs(rootfs_dir);
-#endif
 	sc_mount_nvidia_driver(rootfs_dir);
 	// Chroot into the new root filesystem so that / is the core snap.  Why are
 	// we using something as esoteric as pivot_root? Because this makes apparmor
@@ -260,42 +269,6 @@ void setup_snappy_os_mounts()
 	// left out as they are not part of the core snap.
 	debug("resetting PATH to values in sync with core snap");
 	setenv("PATH", "/usr/sbin:/usr/bin:/sbin:/bin:/usr/games", 1);
-#else
-	// we mount some whitelisted directories
-	//
-	// Note that we do not mount "/etc/" from snappy. We could do that,
-	// but if we do we need to ensure that data like /etc/{hostname,hosts,
-	// passwd,groups} is in sync between the two systems (probably via
-	// selected bind mounts of those files).
-	const char *mounts[] =
-	    { "/bin", "/sbin", "/lib", "/lib32", "/libx32", "/lib64", "/usr",
-		"/etc/alternatives"
-	};
-	for (int i = 0; i < sizeof(mounts) / sizeof(char *); i++) {
-		// we mount the OS snap /bin over the real /bin in this NS
-		const char *dst = mounts[i];
-
-		char buf[512];
-		must_snprintf(buf, sizeof(buf), "/snap/ubuntu-core/current/%s",
-			      dst);
-		const char *src = buf;
-
-		// some system do not have e.g. /lib64
-		struct stat sbuf;
-		if (stat(dst, &sbuf) != 0 || stat(src, &sbuf) != 0) {
-			if (errno == ENOENT)
-				continue;
-			else
-				die("could not stat mount point");
-		}
-
-		debug("mounting %s -> %s\n", src, dst);
-		if (mount(src, dst, NULL, MS_BIND, NULL) != 0) {
-			die("unable to bind %s to %s", src, dst);
-		}
-	}
-	sc_mount_nvidia_driver("");
-#endif				// ROOTFS_IS_CORE_SNAP
 }
 
 void setup_slave_mount_namespace()
