@@ -1,4 +1,4 @@
-snap-confine (1.0.38-3) UNRELEASED; urgency=medium
+snap-confine (1.0.38-3) unstable; urgency=medium
 
   * debian/patches/prctl-compatibility.patch: add shadow definitions for
     compatibility with older kernel headers.
@@ -8,7 +8,7 @@ snap-confine (1.0.38-3) UNRELEASED; urgency=medium
     rm_conffile which does not deal with changing architectures
   * fix log-observer interface regression (LP: #1606277)
 
- -- Steve Langasek <vorlon@debian.org>  Thu, 28 Jul 2016 22:20:02 +0200
+ -- Steve Langasek <vorlon@debian.org>  Thu, 28 Jul 2016 21:00:38 +0000
 
 snap-confine (1.0.38-2) unstable; urgency=medium
 
