@@ -16,7 +16,6 @@ Build-Depends: autoconf,
                libudev-dev,
                pkg-config,
                python3-docutils,
-               shellcheck,
                udev
 Standards-Version: 3.9.8
 Vcs-Git: git://anonscm.debian.org/collab-maint/snap-confine.git -b debian

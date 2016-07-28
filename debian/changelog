@@ -2,6 +2,8 @@ snap-confine (1.0.38-3) UNRELEASED; urgency=medium
 
   * debian/patches/prctl-compatibility.patch: add shadow definitions for
     compatibility with older kernel headers.
+  * drop build-dependency on shellcheck, which is not used at build time
+    and doesn't exist in trusty.
 
  -- Steve Langasek <vorlon@debian.org>  Thu, 28 Jul 2016 22:20:02 +0200
 
