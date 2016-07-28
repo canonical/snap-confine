@@ -1,0 +1,41 @@
+Description: add shadow definitions for compatibility with older kernel headers
+ snap-confine requires a newer kernel to run, but shouldn't require newer
+ kernel headers to build.  Include some newer definitions in case they
+ aren't available.
+Author: Steve Langasek <steve.langasek@ubuntu.com>
+
+Index: snap-confine/src/seccomp-support.h
+===================================================================
+--- snap-confine.orig/src/seccomp-support.h
++++ snap-confine/src/seccomp-support.h
+@@ -42,4 +42,30 @@
+  **/
+ void sc_load_seccomp_context(scmp_filter_ctx ctx);
+ 
++/**
++ * Shadow definitions for compatibility with older kernel headers
++ *
++ * snap-confine requires a newer kernel to run, but shouldn't require newer
++ * kernel headers to build.  Include some newer definitions in case they
++ * aren't available.
++ **/
++
++#ifndef PR_SET_THP_DISABLE
++#define PR_SET_THP_DISABLE      41
++#define PR_GET_THP_DISABLE      42
++#endif
++
++#ifndef PR_MPX_ENABLE_MANAGEMENT
++#define PR_MPX_ENABLE_MANAGEMENT  43
++#define PR_MPX_DISABLE_MANAGEMENT 44
++#endif
++
++#ifndef PR_CAP_AMBIENT
++#define PR_CAP_AMBIENT                  47
++#define PR_CAP_AMBIENT_IS_SET		1
++#define PR_CAP_AMBIENT_RAISE		2
++#define PR_CAP_AMBIENT_LOWER		3
++#define PR_CAP_AMBIENT_CLEAR_ALL	4
++#endif
++
+ #endif

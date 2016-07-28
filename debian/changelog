@@ -1,3 +1,10 @@
+snap-confine (1.0.38-3) UNRELEASED; urgency=medium
+
+  * debian/patches/prctl-compatibility.patch: add shadow definitions for
+    compatibility with older kernel headers.
+
+ -- Steve Langasek <vorlon@debian.org>  Thu, 28 Jul 2016 22:20:02 +0200
+
 snap-confine (1.0.38-2) unstable; urgency=medium
 
   * Fix invocations of rm_conffile.
