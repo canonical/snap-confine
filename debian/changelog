@@ -6,6 +6,7 @@ snap-confine (1.0.38-3) UNRELEASED; urgency=medium
     and doesn't exist in trusty.
   * make ubuntu-core-launcher "arch:any" to workaround an issue in
     rm_conffile which does not deal with changing architectures
+  * fix log-observer interface regression (LP: #1606277)
 
  -- Steve Langasek <vorlon@debian.org>  Thu, 28 Jul 2016 22:20:02 +0200
 
