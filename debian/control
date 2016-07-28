@@ -33,7 +33,7 @@ Description: Support executable to apply confinement for snappy apps
  reviewed to limit the attack surface on the security model of snapd.
 
 Package: ubuntu-core-launcher
-Architecture: all
+Architecture: any
 Depends: snap-confine, ${misc:Depends}, ${shlibs:Depends}
 Pre-Depends: dpkg (>= 1.17.14)
 Description: Launcher for ubuntu-core (snappy) apps

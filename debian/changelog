@@ -4,6 +4,8 @@ snap-confine (1.0.38-3) UNRELEASED; urgency=medium
     compatibility with older kernel headers.
   * drop build-dependency on shellcheck, which is not used at build time
     and doesn't exist in trusty.
+  * make ubuntu-core-launcher "arch:any" to workaround an issue in
+    rm_conffile which does not deal with changing architectures
 
  -- Steve Langasek <vorlon@debian.org>  Thu, 28 Jul 2016 22:20:02 +0200
 
