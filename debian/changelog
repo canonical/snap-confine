@@ -1,6 +1,7 @@
 snap-confine (1.0.39-1) UNRELEASED; urgency=medium
 
   * New upstream release.
+  * Remove d/patches/01_lp1606277.patch, applied upstream.
 
  -- Michael Hudson-Doyle <michael.hudson@ubuntu.com>  Tue, 16 Aug 2016 14:54:46 +1200
 
