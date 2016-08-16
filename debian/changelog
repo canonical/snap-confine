@@ -1,4 +1,4 @@
-snap-confine (1.0.39-1) UNRELEASED; urgency=medium
+snap-confine (1.0.39-1) unstable; urgency=medium
 
   * New upstream release.
   * Remove d/patches/01_lp1606277.patch, applied upstream.
