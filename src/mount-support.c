@@ -26,6 +26,7 @@
 #include <sys/types.h>
 #include <sys/syscall.h>
 #include <errno.h>
+#include <fcntl.h>
 #include <sched.h>
 #include <string.h>
 #include <mntent.h>
@@ -276,14 +277,47 @@ void setup_snappy_os_mounts()
 	// moved all paths to /tmp/snap.rootfs_*. Because we are using unshare with
 	// CLONE_NEWNS we can essentially use pivot_root just like chroot but this
 	// makes apparmor unaware of the old root so everything works okay.
+
+	// The code below was copied and adapted from src/lxc/conf.c in
+	// github.com/lxc/lxc. It is available under the terms of the
+	// LGPLv2.1 and higher and was written by various LXC developers.
+
 	debug("chrooting into %s", rootfs_dir);
-	if (chdir(rootfs_dir) == -1) {
-		die("cannot change working directory to %s", rootfs_dir);
+
+	int oldroot = -1, newroot = -1;
+	oldroot = open("/", O_DIRECTORY | O_PATH);
+	if (oldroot < 0) {
+		die("cannot open the root directory of the old filesystem");
 	}
-	if (syscall(SYS_pivot_root, ".", rootfs_dir) == -1) {
+
+	newroot = open(rootfs_dir, O_DIRECTORY | O_PATH);
+	if (newroot < 0) {
+		die("cannot open the root directory of the new filesystem");
+	}
+
+	if (fchdir(newroot)) {
+		die("cannot switch to the root directory of the new filesystem");
+	}
+
+	if (syscall(SYS_pivot_root, ".", ".") == -1) {
 		die("cannot pivot_root to the new root filesystem");
 	}
-	// Reset path as we cannot rely on the path from the host OS to
+
+	if (fchdir(oldroot) < 0) {
+		die("cannot switch to the root directory of the old filesystem");
+	}
+
+	if (umount2(".", MNT_DETACH) < 0) {
+		die("cannot unmount the old filesystem");
+	}
+
+	if (fchdir(newroot) < 0) {
+		die("cannot switch back to the root directory of the new filesystem");
+	}
+
+	close(oldroot);
+	close(newroot);
+
 	// make sense. The classic distribution may use any PATH that makes
 	// sense but we cannot assume it makes sense for the core snap
 	// layout. Note that the /usr/local directories are explicitly
