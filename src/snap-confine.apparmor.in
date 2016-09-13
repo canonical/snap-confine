@@ -203,7 +203,7 @@
 	owner @{PROC}/*/mountinfo r,
 	capability sys_chroot,
 	capability sys_admin,
-	signal (send) set=("int") peer=@LIBEXECDIR@//mount-namespace-capture-helper,
+	signal (send) set=("int") peer=@LIBEXECDIR@snap-confine//mount-namespace-capture-helper,
 
 	^mount-namespace-capture-helper (attach_disconnected) {
 		# We run privileged, so be fanatical about what we include and don't use
@@ -247,7 +247,7 @@
 		# mount options=(rw bind) /proc/*/ns/mnt/ -> /run/snapd/ns/*.mnt/,
 		mount options=(rw bind) -> /run/snapd/ns/*.mnt,
 		signal (receive) peer=unconfined,
-		signal (receive) set=("int") peer=@LIBEXECDIR@//mount-namespace-capture-helper,
+		signal (receive) set=("int") peer=@LIBEXECDIR@snap-confine//mount-namespace-capture-helper,
 		ptrace (tracedby) peer=@LIBEXECDIR@/snap-confine,
 		ptrace,
 	}
