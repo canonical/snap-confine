@@ -26,12 +26,18 @@ exclude:
     - autom4te.cache
 
 prepare: |
-    echo "Spread is running as $(id)"
     [ "${REUSE_PROJECT:-}" != 1 ] || exit 0
     ./spread-tests/spread-prepare.sh
 
 suites:
     spread-tests/main/:
         summary: Full-system tests for snap-confine
+        restore-each: |
+            # NOTE: before snapd discards namespaces on snap removal
+            # we have to do it ourselves. All of the tests use one
+            # snap so this is easier to work with.
+            /usr/lib/snapd/snap-discard-ns snapd-hacker-toolbelt || :
     spread-tests/regression/:
         summary: Regression tests for past bug-fixes
+        restore-each: |
+            /usr/lib/snapd/snap-discard-ns snapd-hacker-toolbelt || :
