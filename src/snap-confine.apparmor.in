@@ -248,6 +248,7 @@
 		mount options=(rw bind) -> /run/snapd/ns/*.mnt,
 		signal (receive) peer=unconfined,
 		signal (receive) set=("int") peer=@LIBEXECDIR@snap-confine//mount-namespace-capture-helper,
+		signal (receive) set=("int") peer=@LIBEXECDIR@snap-confine,
 		ptrace (tracedby) peer=@LIBEXECDIR@/snap-confine,
 		ptrace,
 	}
