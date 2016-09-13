@@ -1,8 +1,8 @@
 project: snap-confine
 
 environment:
-    REUSE_PROJECT: $(echo $REUSE_PROJECT)
-    PATH: /snap/bin:$PATH
+    REUSE_PROJECT: "$(HOST:echo $REUSE_PROJECT)"
+    PATH: "/snap/bin:$PATH"
 
 backends:
     linode:
@@ -10,6 +10,13 @@ backends:
         systems:
             - ubuntu-16.04-64-grub
             # - ubuntu-16.04-32-grub
+    qemu:
+        systems:
+            - ubuntu-16.04:
+                username: ubuntu
+                password: ubuntu
+                environment:
+                    APT_PROXY: "$(HOST: echo $APT_PROXY)"
 
 path: /remote/path/
 
@@ -19,13 +26,7 @@ exclude:
     - autom4te.cache
 
 prepare: |
-    [ "$REUSE_PROJECT" != 1 ] || exit 0
-    if [ -f /etc/apt/apt.conf.d/95cloud-init-proxy ]; then
-        rm -f /etc/apt/apt.conf.d/95cloud-init-proxy
-    fi
-    if [ -n "${APT_PROXY:-}" ]; then
-        printf 'Acquire::http::Proxy "%s";\n' "$APT_PROXY" > /etc/apt/apt.conf.d/00aptproxy
-    fi
+    [ "${REUSE_PROJECT:-}" != 1 ] || exit 0
     ./spread-tests/spread-prepare.sh
 
 suites:
