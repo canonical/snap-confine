@@ -8,7 +8,7 @@ details: |
     devmode snaps.
 prepare: |
     echo "Having installed the snapd-hacker-toolbelt snap in devmode"
-    snap install --devmode snapd-hacker-toolbelt
+    "$SPREAD_PATH/spread-tests/snap-install" --devmode snapd-hacker-toolbelt
 execute: |
     cd /
     echo "We can run unshare -U as a regular user and expect it to work"

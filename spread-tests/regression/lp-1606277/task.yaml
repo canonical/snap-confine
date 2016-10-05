@@ -6,7 +6,7 @@ details: |
     even if the log-observe interface is being used.
 prepare: |
     echo "Having installed the snapd-hacker-toolbelt snap"
-    snap install snapd-hacker-toolbelt
+    "$SPREAD_PATH/spread-tests/snap-install" snapd-hacker-toolbelt
     echo "And having connected the log-observe interface"
     snap connect snapd-hacker-toolbelt:log-observe ubuntu-core:log-observe
 execute: |

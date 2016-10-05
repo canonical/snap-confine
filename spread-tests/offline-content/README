@@ -1,0 +1,25 @@
+This directory contains optional assets that given some additional configuration allow
+one to run spread tests completely offline. This is useful in certain situations, e.g.
+limited or metered connection, no network, etc.
+
+With the offline content in place tests run somewhat faster as one big part of the setup
+is skipped (sbuild-createchroot). The overal result is very much smilar / identical
+to if you were running online. In an emergency it is possible to convert your local online
+setup to work offline (just type 'make') but this requires that:
+
+ - you have working proxy for APT, e.g. apt-cacher-ng
+ - the proxy is used by your system so you have some useful content there
+   (edit /etc/apt/apt.conf.d/00proxy and insert something like
+    acquire::http::Proxy "http://192.168.9.1:3141";
+   this is easy to do if you use it for one full spread test in qemu
+ - the APT_PROXY environment variable points to the same URL as used above
+ - the IP address there is stable (ideally add it to your machine separately from
+   your normal dynamic address) and is available even when offline.
+ - you have the 'ubuntu-core', 'snapd-hacker-toolbelt' and 'hello-world' snaps installed
+   locally.
+ - you have sbuild set up and have appropriate chroots or can build one from your offline
+   proxy.
+
+Now all that you have to do is to put apt-cacher-ng into fully offline mode
+(/etc/apt-cacher-ng/acnf.conf has the appropriate switch). With everything else intact
+you should be able to type "make" here and end up with working offline spread tests.

@@ -47,14 +47,18 @@ build_debian_or_ubuntu_package() {
     cd "$scratch_dir"
 
     # Fetch the current Ubuntu packaging for the appropriate release
-    git clone -b "$distro_packaging_git_branch" "$distro_packaging_git" distro-packaging
+    if [ -d "$SPREAD_PATH/spread-tests/offline-content/packaging.$release_ID.git" ]; then
+        git clone -b "$distro_packaging_git_branch" "$SPREAD_PATH/spread-tests/offline-content/packaging.$release_ID.git" distro-packaging
+    else
+        git clone -b "$distro_packaging_git_branch" "$distro_packaging_git" distro-packaging
+    fi
 
     # Install all the build dependencies declared by the package.
-    apt-get install --quiet -y gdebi-core
-    apt-get install --quiet -y $(gdebi --quiet --apt-line ./distro-packaging/debian/control)
+    time apt-get install --quiet -y gdebi-core
+    time apt-get install --quiet -y $(gdebi --quiet --apt-line ./distro-packaging/debian/control)
 
     # Generate a new upstream tarball from the current state of the tree
-    ( cd "$top_dir" && spread-tests/release.sh )
+    ( cd "$top_dir" && time spread-tests/release.sh )
 
     # Prepare the .orig tarball and unpackaged source tree
     cp "$top_dir/snap-confine-$pkg_version.tar.gz" "snap-confine_$pkg_version.orig.tar.gz"
@@ -69,7 +73,7 @@ build_debian_or_ubuntu_package() {
     ( cd "snap-confine-$pkg_version" && dch --controlmaint --newversion "${pkg_version}-1" "Automatic CI build")
 
     # Build an unsigned source package
-    ( cd "snap-confine-$pkg_version" && dpkg-buildpackage -uc -us -S )
+    ( cd "snap-confine-$pkg_version" && time dpkg-buildpackage -uc -us -S )
 
     # Copy source package files to the top-level directory (this helps for
     # interactive debugging since the package is available right there)
@@ -77,19 +81,39 @@ build_debian_or_ubuntu_package() {
 
     # Ensure that we have a sbuild chroot ready
     if ! schroot -l | grep "chroot:${distro_codename}-.*-sbuild"; then
-        sbuild-createchroot \
-            --include=eatmydata \
-            "--make-sbuild-tarball=/var/lib/sbuild/${distro_codename}-amd64.tar.gz" \
-            "$sbuild_createchroot_extra" \
-            "$distro_codename" "$(mktemp -d)" \
-            "$distro_archive"
+        if [ -e "$SPREAD_PATH/spread-tests/offline-content/${distro_codename}-amd64.tar.gz" ]; then
+            ln "$SPREAD_PATH/spread-tests/offline-content/${distro_codename}-amd64.tar.gz" "/var/lib/sbuild/${distro_codename}-amd64.tar.gz"
+            chown root.root "/var/lib/sbuild/${distro_codename}-amd64.tar.gz"
+            mkdir -p /etc/schroot/chroot.d/
+            cat > "/etc/schroot/chroot.d/${distro_codename}-amd64-sbuild-offline" <<EOF
+[${distro_codename}-amd64-sbuild]
+type=file
+description=Offline ${distro_codename}/amd64 autobuilder
+file=/var/lib/sbuild/${distro_codename}-amd64.tar.gz
+groups=root,sbuild
+root-groups=root,sbuild
+profile=sbuild
+EOF
+        else
+            sbuild-createchroot \
+                --include=eatmydata \
+                "--make-sbuild-tarball=/var/lib/sbuild/${distro_codename}-amd64.tar.gz" \
+                "$sbuild_createchroot_extra" \
+                "$distro_codename" "$(mktemp -d)" \
+                "$distro_archive"
+        fi
     fi
-
+    if [ -n "$APT_PROXY" ]; then
+        inject_proxy_cmd=--chroot-setup-commands="printf 'Acquire::http::Proxy \"$APT_PROXY\";\n' > /etc/apt/apt.conf.d/99proxy"
+    else
+        inject_proxy_cmd=--chroot-setup-commands=/bin/true
+    fi
     # Build a binary package in a clean chroot.
     # NOTE: nocheck is because the package still includes old unit tests that
     # are deeply integrated into how ubuntu apparmor denials are logged. This
     # should be removed once those test are migrated to spread testes.
-    DEB_BUILD_OPTIONS=nocheck sbuild \
+    DEB_BUILD_OPTIONS=nocheck time sbuild \
+        "${inject_proxy_cmd}" \
         --arch-all \
         --dist="$distro_codename" \
         --batch \
@@ -114,7 +138,7 @@ case "$release_ID" in
     ubuntu|debian)
         # treat APT_PROXY as a location of apt-cacher-ng to use
         if [ -n "${APT_PROXY:-}" ]; then
-            printf 'Acquire::http::Proxy "%s";\n' "$APT_PROXY" > /etc/apt/apt.conf.d/00proxy
+            printf 'Acquire::http::Proxy "%s";\n' "$APT_PROXY" > /etc/apt/apt.conf.d/99proxy
         fi
         # cope with unexpected /etc/apt/apt.conf.d/95cloud-init-proxy that may be in the image
         rm -f /etc/apt/apt.conf.d/95cloud-init-proxy || :
@@ -124,7 +148,7 @@ case "$release_ID" in
             add-apt-repository ppa:thomas-voss/trusty
         fi
         apt-get update
-        apt-get dist-upgrade -y
+        time apt-get dist-upgrade -y
         if [ "$release_ID" = "ubuntu" ] && [ "$release_VERSION_ID" = "14.04" ]; then
             apt-get install -y systemd
             # starting systemd manually is working around
@@ -135,7 +159,7 @@ case "$release_ID" in
         # - sbuild -- to build the binary package with extra hygiene
         # - devscripts -- to modify the changelog automatically
         # - git -- to clone native downstream packaging
-        apt-get install --quiet -y sbuild devscripts git
+        time apt-get install --quiet -y sbuild devscripts git
         # XXX: Taken from https://wiki.debian.org/sbuild
         mkdir -p /root/.gnupg
         # NOTE: We cannot use sbuild-update --keygen as virtual machines lack
@@ -158,10 +182,10 @@ case "$release_ID" in
     ubuntu|debian)
         build_debian_or_ubuntu_package "$release_ID" "$release_VERSION_ID"
         # Install the freshly-built packages
-        dpkg -i snap-confine_*.deb || apt-get -f install -y
-        dpkg -i ubuntu-core-launcher_*.deb || apt-get -f install -y
+        time dpkg -i snap-confine_*.deb || apt-get -f install -y
+        time dpkg -i ubuntu-core-launcher_*.deb || apt-get -f install -y
         # Install snapd (testes require it)
-        apt-get install -y snapd
+        time apt-get install -y snapd
         ;;
     *)
         echo "unsupported distribution: $release_ID"
@@ -170,4 +194,4 @@ case "$release_ID" in
 esac
 
 # Install the core snap
-snap list | grep -q ubuntu-core || snap install ubuntu-core
+"$SPREAD_PATH/spread-tests/snap-install" ubuntu-core

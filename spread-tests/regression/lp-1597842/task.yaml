@@ -5,7 +5,7 @@ details: |
     access kernel sources.
 prepare: |
     # NOTE: devmode is required because there's no interface for reading /usr/src/.canary
-    snap install --devmode snapd-hacker-toolbelt
+    "$SPREAD_PATH/spread-tests/snap-install" --devmode snapd-hacker-toolbelt
     mv /usr/src /usr/src.orig || true
     mkdir -p /usr/src
     echo canary > /usr/src/.canary

@@ -9,7 +9,7 @@ details: |
     This test checks that it is actually created
 prepare: |
     echo "Having installed the snapd-hacker-toolbelt snap"
-    snap install snapd-hacker-toolbelt
+    "$SPREAD_PATH/spread-tests/snap-install" snapd-hacker-toolbelt
     echo "Having removed the SNAP_USER_DATA directory"
     rm -rf "$HOME/snap/snapd-hacker-toolbelt/"
 execute: |

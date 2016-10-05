@@ -3,7 +3,7 @@ summary: Check that entire snap can be shared with the content interface
 systems: [-debian-8]
 prepare: |
     echo "Having installed the snapd-hacker-toolbelt snap"
-    snap install snapd-hacker-toolbelt
+    "$SPREAD_PATH/spread-tests/snap-install" snapd-hacker-toolbelt
     echo "We can change its mount profile externally to create a read-only bind-mount"
     echo "/snap/snapd-hacker-toolbelt/current -> /snap/snapd-hacker-toolbelt/current/dst"
     mkdir -p /var/lib/snapd/mount/
