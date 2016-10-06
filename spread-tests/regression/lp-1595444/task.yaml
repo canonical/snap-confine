@@ -16,7 +16,16 @@ execute: |
     echo "Then snap-confine moves us to /var/lib/snapd/void"
     [ "$(cd /foo && /snap/bin/snapd-hacker-toolbelt.busybox pwd)" = "/var/lib/snapd/void" ]
     echo "And that directory is not readable or writable"
-    [ "$(cd /foo && /snap/bin/snapd-hacker-toolbelt.busybox ls 2>&1)" = "ls: .: Permission denied" ];
+    # NOTE: the printed message differs between dash and bash:
+    #
+    # In dash/busybox/sh it is:
+    # ls: .: Permission denied
+    #
+    # In bash it is:
+    # ls: cannot open directory '.': Permission denied
+    #
+    # The code below uses dash/sh
+    [ "$(cd /foo && /snap/bin/snapd-hacker-toolbelt.busybox sh -c 'ls' 2>&1)" = "ls: .: Permission denied" ];
 restore: |
     snap remove snapd-hacker-toolbelt
     rm -rf /var/snap/snapd-hacker-toolbelt
