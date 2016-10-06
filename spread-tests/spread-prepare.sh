@@ -103,7 +103,7 @@ EOF
                 "$distro_archive"
         fi
     fi
-    if [ -n "$APT_PROXY" ]; then
+    if [ -n "${APT_PROXY:-}" ]; then
         inject_proxy_cmd=--chroot-setup-commands="printf 'Acquire::http::Proxy \"$APT_PROXY\";\n' > /etc/apt/apt.conf.d/99proxy"
     else
         inject_proxy_cmd=--chroot-setup-commands=/bin/true
