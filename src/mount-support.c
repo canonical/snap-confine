@@ -338,11 +338,15 @@ static void setup_snappy_os_mounts()
 			      etc_alternatives);
 		must_snprintf(dst, sizeof dst, "%s%s", rootfs_dir,
 			      etc_alternatives);
-		debug("bind mounting %s to %s", src, dst);
-		// NOTE: MS_SLAVE so that the started process cannot maliciously mount
-		// anything into those places and affect the system on the outside.
-		if (mount(src, dst, NULL, MS_BIND | MS_SLAVE, NULL) != 0) {
-			die("cannot bind mount %s to %s", src, dst);
+		// We need check the real alternatives directory in core_snap_dir.
+		if (access(src, F_OK) != 0) {
+			debug("bind mounting %s to %s", src, dst);
+			// NOTE: MS_SLAVE so that the started process cannot maliciously mount
+			// anything into those places and affect the system on the outside.
+			if (mount(src, dst, NULL, MS_BIND | MS_SLAVE, NULL) !=
+			    0) {
+				die("cannot bind mount %s to %s", src, dst);
+			}
 		}
 	}
 	sc_mkdir_hostfs_if_missing();
