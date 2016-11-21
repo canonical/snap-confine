@@ -13,7 +13,6 @@ all_tests = \
     test_noprofile \
     test_restrictions \
     test_restrictions_working \
-    test_restrictions_working_args \
     test_restrictions_working_args_prctl \
     test_restrictions_working_args_prio \
     test_restrictions_working_args_socket \
