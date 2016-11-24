@@ -66,6 +66,8 @@ void mkpath(const char *const path)
 	while (path_segment) {
 		// Try to create the directory. It's okay if it already
 		// existed, but any other error is fatal.
+		debug("creating subdirectory fragment %s", path_segment);
+		errno = 0;
 		if (mkdirat(fd, path_segment, 0755) < 0 && errno != EEXIST) {
 			close(fd);	// we die regardless of return code
 			free(path_copy);
@@ -96,7 +98,7 @@ void mkpath(const char *const path)
 	free(path_copy);
 }
 
-void setup_user_data()
+void setup_user_data(uid_t uid, gid_t gid)
 {
 	const char *user_data = getenv("SNAP_USER_DATA");
 
@@ -109,14 +111,22 @@ void setup_user_data()
 	}
 
 	mkpath(user_data);
+	if (lchown(user_data, uid, gid) != 0) {
+		die("could not chown user data directory");
+	}
+	// TODO: we should chown everything below $HOME
 }
 
-void setup_user_xdg_runtime_dir()
+void setup_user_xdg_runtime_dir(uid_t uid, gid_t gid)
 {
+	debug("considering creating $XDG_RUNTIME_DIR for the snap session");
 	const char *xdg_runtime_dir = getenv("XDG_RUNTIME_DIR");
+	debug("XDG_RUNTIME_DIR is %s", xdg_runtime_dir);
 
-	if (xdg_runtime_dir == NULL)
+	if (xdg_runtime_dir == NULL) {
+		debug("XDG_RUNTIME_DIR is not set");
 		return;
+	}
 	// Only support absolute paths.
 	if (xdg_runtime_dir[0] != '/') {
 		die("XDG_RUNTIME_DIR must be an absolute path");
@@ -125,9 +135,19 @@ void setup_user_xdg_runtime_dir()
 	errno = 0;
 	mkpath(xdg_runtime_dir);
 
-	// if successfully created the directory (ie, not EEXIST), then
-	// chmod it.
-	if (errno == 0 && chmod(xdg_runtime_dir, 0700) != 0) {
-		die("could not chmod XDG_RUNTIME_DIR");
+	// if mkpath didn't do anything (EEXIST) then just return.
+	if (errno == EEXIST) {
+		debug("XDG_RUNTIME_DIR was created earlier");
+		return;
+	}
+	// change mode and ownership of the created directory
+	debug("changing mode of XDG_RUNTIME_DIR to 0700");
+	if (chmod(xdg_runtime_dir, 0700) != 0) {
+		die("cannot change mode of XDG_RUNTIME_DIR to 0700");
+	}
+	debug("changing ownership of XDG_RUNTIME_DIR to %d.%d", uid, gid);
+	if (lchown(xdg_runtime_dir, uid, gid) != 0) {
+		die("cannot change ownership of XDG_RUNTIME_DIR to %d.%d", uid,
+		    gid);
 	}
 }

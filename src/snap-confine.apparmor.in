@@ -220,7 +220,17 @@
 
     # for creating the user XDG_RUNTIME_DIR: /run/user, /run/user/UID and
     # /run/user/UID/<name>
-    /run/user/{,[0-9]*/,[0-9]*/*/} rw,
+    / r,
+    /run r,
+    /run/user/ rw,
+    /run/user/[0-9]*/ rw,
+    /run/user/[0-9]*/*/ rw,
+    # for creating $SNAP_USER_DATA
+    / r,
+    @{HOME}/ r,
+    @{HOME}/snap/ rw,
+    @{HOME}/snap/*/ rw,
+    @{HOME}/snap/*/*/ rw,
 
     # Workaround https://launchpad.net/bugs/359338 until upstream handles
     # stacked filesystems generally.

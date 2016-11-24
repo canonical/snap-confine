@@ -18,8 +18,10 @@
 #ifndef SNAP_CONFINE_USER_SUPPORT_H
 #define SNAP_CONFINE_USER_SUPPORT_H
 
-void setup_user_data();
-void setup_user_xdg_runtime_dir();
+#include <sys/types.h>
+
+void setup_user_data(uid_t uid, gid_t gid);
+void setup_user_xdg_runtime_dir(uid_t uid, gid_t gid);
 void mkpath(const char *const path);
 
 #endif
