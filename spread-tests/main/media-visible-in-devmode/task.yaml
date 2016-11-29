@@ -3,7 +3,7 @@ summary: Check that /media is available to snaps installed in --devmode
 systems: [-debian-8]
 prepare: |
     echo "Having installed the snapd-hacker-toolbelt snap in devmode"
-    snap install --devmode snapd-hacker-toolbelt
+    "$SPREAD_PATH/spread-tests/snap-install" --devmode snapd-hacker-toolbelt
     echo "Having added a canary file in /media"
     echo "test" > /media/canary
 execute: |

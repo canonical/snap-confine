@@ -6,7 +6,7 @@ details: |
     from the host filesystem when running on a classic distribution.
 prepare: |
     echo "Having installed the snapd-hacker-toolbelt snap"
-    snap install snapd-hacker-toolbelt
+    "$SPREAD_PATH/spread-tests/snap-install" snapd-hacker-toolbelt
     echo "and having connected the mount-observe interface"
     snap connect snapd-hacker-toolbelt:mount-observe ubuntu-core:mount-observe
 execute: |

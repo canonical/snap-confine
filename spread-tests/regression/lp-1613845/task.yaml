@@ -8,7 +8,7 @@ details: |
     still important to ensure that it works in classic devmode environment.
 prepare: |
     echo "Having installed the snapd-hacker-toolbelt snap in devmode"
-    snap install --devmode snapd-hacker-toolbelt
+    "$SPREAD_PATH/spread-tests/snap-install" --devmode snapd-hacker-toolbelt
     echo "Having created a canary file in /var/lib/lxd"
     mkdir -p /var/lib/lxd
     echo "test" > /var/lib/lxd/canary

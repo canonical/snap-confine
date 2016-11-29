@@ -16,7 +16,7 @@ prepare: |
     exit 0
     cd /
     echo "Install hello-world"
-    snap install hello-world
+    "$SPREAD_PATH/spread-tests/snap-install" hello-world
     systemctl stop snapd.refresh.timer snapd.service snapd.socket
     # all of this ls madness can go away when we have remote environment
     # variables

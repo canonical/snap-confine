@@ -3,7 +3,7 @@ summary: Check that launcher cgroup functionality works
 systems: [-debian-8]
 prepare: |
     echo "Install snapd-hacker-toolbelt"
-    snap install snapd-hacker-toolbelt
+    "$SPREAD_PATH/spread-tests/snap-install" snapd-hacker-toolbelt
 execute: |
     cd /
     echo "Clear udev tags and cgroups with non-test device and running snapd-hacker-toolbelt.busybox"

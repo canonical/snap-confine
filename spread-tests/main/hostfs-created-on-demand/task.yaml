@@ -6,7 +6,7 @@ details: |
     if the host packaging of snapd doesn't already provide it.
 prepare: |
     echo "Having installed the snapd-hacker-toolbelt snap"
-    snap install snapd-hacker-toolbelt
+    "$SPREAD_PATH/spread-tests/snap-install" snapd-hacker-toolbelt
     echo "We can move the packaged hostfs directory aside"
     if [ -d /var/lib/snapd/hostfs ]; then
         mv /var/lib/snapd/hostfs /var/lib/snapd/hostfs.orig

@@ -5,7 +5,7 @@ details: |
     it is discarded with snap-discard-ns.
 prepare: |
     # NOTE: devmode is required because otherwise we cannot read /proc/self/ns/mnt
-    snap install --devmode snapd-hacker-toolbelt
+    "$SPREAD_PATH/spread-tests/snap-install" --devmode snapd-hacker-toolbelt
 execute: |
     export PATH=/snap/bin:$PATH
     echo "The mount namespace inside a snap is different"

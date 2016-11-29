@@ -7,8 +7,9 @@ details: |
     see the correct path. 
 prepare: |
     echo "Having installed the snapd-hacker-toolbelt snap"
-    snap install snapd-hacker-toolbelt
+    "$SPREAD_PATH/spread-tests/snap-install" snapd-hacker-toolbelt
 execute: |
+    cd /
     echo "We can observe the value of PATH twice"
     revision=$(readlink /snap/snapd-hacker-toolbelt/current)
     one="$(snapd-hacker-toolbelt.busybox sh -c 'echo $PATH')"

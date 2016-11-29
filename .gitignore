@@ -1,3 +1,9 @@
+# offline content
+spread-tests/offline-content/*.snap
+spread-tests/offline-content/xenial-amd64.tar.gz
+spread-tests/offline-content/packaging.*/
+
+# Build artefacts
 src/snap-confine
 src/snap-discard-ns
 src/snap-confine-unit-tests

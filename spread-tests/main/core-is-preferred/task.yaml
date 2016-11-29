@@ -1,7 +1,7 @@
 summary: The snap named 'core' is preferred to the snap 'ubuntu-core'
 prepare: |
-    snap install --devmode snapd-hacker-toolbelt
-    snap install core
+    "$SPREAD_PATH/spread-tests/snap-install" --devmode snapd-hacker-toolbelt
+    "$SPREAD_PATH/spread-tests/snap-install" core
 execute: |
     snapd-hacker-toolbelt.busybox cat /meta/snap.yaml | grep -q -F 'name: core'
 restore: |

@@ -13,6 +13,8 @@ backends:
             - ubuntu-16.04-32:
                 kernel: GRUB 2
     qemu:
+        environment:
+            APT_PROXY: "$(HOST: echo $APT_PROXY)"
         systems:
             - ubuntu-16.04-32:
                 username: ubuntu
@@ -22,19 +24,14 @@ backends:
             - ubuntu-16.04-64:
                 username: ubuntu
                 password: ubuntu
-                environment:
-                    APT_PROXY: "$(HOST: echo $APT_PROXY)"
-            - ubuntu-16.10-64:
-                username: ubuntu
-                password: ubuntu
-                environment:
-                    APT_PROXY: "$(HOST: echo $APT_PROXY)"
+        # NOTE: 16.10 is disabled because snapd is too old and the image ppa
+        # doesn't have yakkety packages. This needs to be re-enabled when snapd
+        # propagates
 
 path: /home/spread/
 
 exclude:
     - .git
-    - debian
     - autom4te.cache
 
 prepare: |

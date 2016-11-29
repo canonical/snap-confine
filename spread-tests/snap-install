@@ -1,0 +1,23 @@
+#!/bin/sh
+# Usage: snap-install [--devmode] SNAP"
+devmode=
+snapname=
+offline_path="$SPREAD_PATH/spread-tests/offline-content"
+while [ -n "$1" ]; do
+	case "$1" in
+		--devmode)
+			devmode="$1"
+			shift
+			;;
+		*)
+			snapname="$1"
+			shift
+			;;
+	esac
+done
+if [ -e "$offline_path/$snapname.snap" ]; then
+	echo "Using offline snap: $snapname"
+	snap install $devmode --force-dangerous "$offline_path/$snapname.snap"
+else
+	snap install $devmode $snapname
+fi
