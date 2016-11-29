@@ -175,7 +175,12 @@ static bool sc_is_ns_group_dir_private()
 void sc_initialize_ns_groups()
 {
 	debug("creating namespace group directory %s", sc_ns_dir);
-	if (sc_nonfatal_mkpath(sc_ns_dir, 0755) < 0) {
+	struct sc_mkpath_opts opts = {
+		.mode = 0755,
+		.uid = 0,
+		.gid = 0,
+	};
+	if (sc_nonfatal_mkpath(sc_ns_dir, &opts) < 0) {
 		die("cannot create namespace group directory %s", sc_ns_dir);
 	}
 	debug("opening namespace group directory %s", sc_ns_dir);
