@@ -37,32 +37,28 @@
 #include "quirks.h"
 #include "secure-getenv.h"
 #include "apparmor-support.h"
+#include "error.h"
+#include "snap-confine-args.h"
 
 int main(int argc, char **argv)
 {
-	if (argc == 2 && strcmp(argv[1], "--version") == 0) {
+	struct sc_args *args __attribute__ ((cleanup(sc_cleanup_args))) = NULL;
+	struct sc_error *err __attribute__ ((cleanup(sc_cleanup_error))) = NULL;
+
+	args = sc_nonfatal_parse_args(&argc, &argv, &err);
+	if (sc_error_match(err, SC_ARGS_DOMAIN, SC_ARGS_ERR_USAGE)) {
+		die("Usage: %s <security-tag> <binary>\n\n%s", argv[0],
+		    sc_error_msg(err));
+	}
+	sc_die_on_error(err);
+
+	if (sc_args_is_version_query(args) == true) {
 		printf("%s %s\n", PACKAGE, PACKAGE_VERSION);
 		return 0;
 	}
-	char *basename = strrchr(argv[0], '/');
-	if (basename) {
-		debug("setting argv[0] to %s", basename + 1);
-		argv[0] = basename + 1;
-	}
-	if (argc > 1 && !strcmp(argv[0], "ubuntu-core-launcher")) {
-		debug("shifting arguments by one");
-		argv[1] = argv[0];
-		argv++;
-		argc--;
-	}
-
-	const int NR_ARGS = 2;
-	if (argc < NR_ARGS + 1)
-		die("Usage: %s <security-tag> <binary>", argv[0]);
-
-	const char *security_tag = argv[1];
+	char *security_tag = sc_args_security_tag(args);
 	debug("security tag is %s", security_tag);
-	const char *binary = argv[2];
+	char *binary = sc_args_executable(args);
 	debug("binary to run is %s", binary);
 	uid_t real_uid = getuid();
 	gid_t real_gid = getgid();
@@ -150,7 +146,9 @@ int main(int argc, char **argv)
 			die("permanently dropping privs did not work");
 	}
 	// and exec the new binary
-	execv(binary, (char *const *)&argv[NR_ARGS]);
+	argv[0] = binary;
+	debug("execv(%s, %s...)", binary, argv[0]);
+	execv(binary, (char *const *)&argv[0]);
 	perror("execv failed");
 	return 1;
 }
