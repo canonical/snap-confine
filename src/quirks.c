@@ -85,8 +85,12 @@ static void sc_quirk_mkdir_bind(const char *src_dir, const char *dest_dir,
 				unsigned flags)
 {
 	flags |= MS_BIND;
+	struct sc_mkpath_opts opts = {
+		.mode = 0755,
+		.do_chown = false,
+	};
 	debug("creating empty directory at %s", dest_dir);
-	if (sc_nonfatal_mkpath(dest_dir, 0755) < 0) {
+	if (sc_nonfatal_mkpath(dest_dir, &opts) < 0) {
 		die("cannot create empty directory at %s", dest_dir);
 	}
 	const char *flags_str = sc_mount_opt2str(flags);

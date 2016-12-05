@@ -113,6 +113,11 @@ int main(int argc, char **argv)
 			setup_devices_cgroup(security_tag, &udev_s);
 		snappy_udev_cleanup(&udev_s);
 
+		// Setup the XDG_RUNTIME_DIR as root (we need to write to /run here)
+		setup_user_xdg_runtime_dir(real_uid, real_gid);
+		// Ensure that the user data path exists.
+		setup_user_data(real_uid, real_gid);
+
 		// The rest does not so temporarily drop privs back to calling
 		// user (we'll permanently drop after loading seccomp)
 		if (setegid(real_gid) != 0)
@@ -125,10 +130,6 @@ int main(int argc, char **argv)
 		if (real_uid != 0 && getegid() == 0)
 			die("dropping privs did not work");
 	}
-	// Ensure that the user data path exists.
-	setup_user_data();
-	setup_user_xdg_runtime_dir();
-
 	// https://wiki.ubuntu.com/SecurityTeam/Specifications/SnappyConfinement
 	sc_maybe_aa_change_onexec(&apparmor, security_tag);
 #ifdef HAVE_SECCOMP

@@ -157,11 +157,16 @@ int must_snprintf(char *str, size_t size, const char *format, ...)
 	return n;
 }
 
-int sc_nonfatal_mkpath(const char *const path, mode_t mode)
+int sc_nonfatal_mkpath(const char *const path,
+		       const struct sc_mkpath_opts *opts)
 {
 	// If asked to create an empty path, return immediately.
 	if (strlen(path) == 0) {
 		return 0;
+	}
+	// If the options are not specified, fail early.
+	if (opts == NULL) {
+		return -1;
 	}
 	// We're going to use strtok_r, which needs to modify the path, so we'll
 	// make a copy of it.
@@ -176,6 +181,9 @@ int sc_nonfatal_mkpath(const char *const path, mode_t mode)
 	// - Only open a directory (fail otherwise)
 	const int open_flags = O_NOFOLLOW | O_CLOEXEC | O_DIRECTORY;
 
+	// Depth describes how many segments we've investigated already.
+	int depth = 0;
+
 	// We're going to create each path segment via openat/mkdirat calls instead
 	// of mkdir calls, to avoid following symlinks and placing the user data
 	// directory somewhere we never intended for it to go. The first step is to
@@ -186,6 +194,8 @@ int sc_nonfatal_mkpath(const char *const path, mode_t mode)
 		if (fd < 0) {
 			return -1;
 		}
+		// Increment depth even though we don't create /
+		depth += 1;
 	}
 	// strtok_r needs a pointer to keep track of where it is in the string.
 	char *path_walker = NULL;
@@ -193,13 +203,69 @@ int sc_nonfatal_mkpath(const char *const path, mode_t mode)
 	// Initialize tokenizer and obtain first path segment.
 	char *path_segment = strtok_r(path_copy, "/", &path_walker);
 	while (path_segment) {
+		// Variables that track the mode, user and group owner of the segment
+		// being created. Those default to the simple values passed by the
+		// caller but can be modified by the hint function.
+		mode_t segment_mode;
+		uid_t segment_uid;
+		gid_t segment_gid;
+		// Reset the mode, uid and gid for each segment to default values.
+		segment_mode = opts->mode;
+		segment_uid = opts->uid;
+		segment_gid = opts->gid;
+		if (opts->hint_fn != NULL) {
+			// If we have a hint function then call it and allow it to change
+			// the mode, UID and GID for the currently created segment.
+			int err;
+			err =
+			    opts->hint_fn(depth, path_segment, &segment_mode,
+					  &segment_uid, &segment_gid);
+			if (err != 0) {
+				debug("hint function returned error code %d",
+				      err);
+				return err;
+			};
+			// Log any alterations from default mode, uid or git made by the
+			// hint function.
+			if (segment_mode != opts->mode) {
+				debug
+				    ("hint function changed mode for path segment %s to %04o",
+				     path_segment, segment_mode);
+			}
+			if (segment_uid != opts->uid) {
+				debug
+				    ("hint function changed owner for path segment %s to user %d",
+				     path_segment, segment_uid);
+			}
+			if (segment_gid != opts->gid) {
+				debug
+				    ("hint function changed group owner for path segment %s to group %d",
+				     path_segment, segment_gid);
+			}
+		}
 		// Try to create the directory.  It's okay if it already existed, but
 		// return with error on any other error. Reset errno before attempting
 		// this as it may stay stale (errno is not reset if mkdirat(2) returns
 		// successfully).
 		errno = 0;
-		if (mkdirat(fd, path_segment, mode) < 0 && errno != EEXIST) {
+		debug
+		    ("attempting to create directory segment: %s with mode %04o (depth %d)",
+		     path_segment, segment_mode, depth);
+		if (mkdirat(fd, path_segment, segment_mode) < 0
+		    && errno != EEXIST) {
 			return -1;
+		}
+		// Try to change the owner of the directory if we actually created it
+		// and the caller desires this.
+		if (opts->do_chown && errno == 0) {
+			debug
+			    ("attempting to change owner of directory segment: %s to user %d, group %d (depth %d)",
+			     path_segment, segment_uid, segment_gid, depth);
+			if (fchownat
+			    (fd, path_segment, segment_uid, segment_gid,
+			     AT_SYMLINK_NOFOLLOW) < 0) {
+				return -1;
+			}
 		}
 		// Open the parent directory we just made (and close the previous one
 		// (but not the special value AT_FDCWD) so we can continue down the
@@ -214,6 +280,7 @@ int sc_nonfatal_mkpath(const char *const path, mode_t mode)
 		}
 		// Obtain the next path segment.
 		path_segment = strtok_r(NULL, "/", &path_walker);
+		depth += 1;
 	}
 	return 0;
 }
