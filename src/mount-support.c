@@ -325,6 +325,14 @@ static void sc_bootstrap_mount_namespace(const struct sc_mount_config *config)
 		die("cannot perform operation: mount --make-unbindable %s",
 		    scratch_dir);
 	}
+	if (!config->on_classic) {
+		// Make the writable directory unbindable.
+		debug
+		    ("performing operation: mount --make-unbindable /writable");
+		if (mount("none", "/writable", NULL, MS_UNBINDABLE, NULL) < 0) {
+			die("cannot perform operation: mount --make-unbindable /writable");
+		}
+	}
 	// Recursively bind mount desired root filesystem directory over the
 	// scratch directory. This puts the initial content into the scratch space
 	// and serves as a foundation for all subsequent operations below.
