@@ -1,0 +1,16 @@
+summary: Check that CLONE_NEWUSER works with clone() within snap apps
+# This is blacklisted on debian because we first have to get the dpkg-vendor patches
+systems: [-debian-8]
+details: |
+    Snap-confine used to "leak" the root filesystem directory across the
+    pivot_root call. This caused checks in the kernel to fail and resulted in
+    the inability to use clone(CLONE_NEWUSER) from snaps.
+prepare: |
+    echo "Having installed the snapd-hacker-toolbelt snap"
+    snap install snapd-hacker-toolbelt
+execute: |
+    cd /
+    echo "We can clone(CLONE_NEWUSER) as a regular user and expect it to work"
+    /snap/bin/snapd-hacker-toolbelt.busybox sh -c 'clone-newuser-test'
+restore: |
+    snap remove snapd-hacker-toolbelt
